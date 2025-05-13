@@ -1,7 +1,7 @@
 import {
 	decodeAscii85,
 	encodeAscii85
-} from "jsr:@std/encoding@^1.0.5";
+} from "jsr:@std/encoding@^1.0.10";
 export type SymmetricCryptorAlgorithm =
 	| "AES-CBC"
 	| "AES-CTR"
@@ -121,9 +121,9 @@ export class SymmetricCryptor {
 	 * 
 	 * > **🛡️ Runtime Permissions**
 	 * > 
-	 * > - File System - Read \[Deno: `read`; NodeJS (>= v20.9.0) 🧪: `fs-read`\]
+	 * > - **File System - Read (Deno: `read`; NodeJS: `fs-read`):**
 	 * >   - *Resources*
-	 * > - File System - Write \[Deno: `write`; NodeJS (>= v20.9.0) 🧪: `fs-write`\]
+	 * > - **File System - Write (Deno: `write`; NodeJS: `fs-write`):**
 	 * >   - *Resources*
 	 * @param {...(string | URL)} filesPath Path of the files.
 	 * @returns {Promise<this>}
@@ -152,9 +152,9 @@ export class SymmetricCryptor {
 	 * 
 	 * > **🛡️ Runtime Permissions**
 	 * > 
-	 * > - File System - Read \[Deno: `read`; NodeJS (>= v20.9.0) 🧪: `fs-read`\]
+	 * > - **File System - Read (Deno: `read`; NodeJS: `fs-read`):**
 	 * >   - *Resources*
-	 * > - File System - Write \[Deno: `write`; NodeJS (>= v20.9.0) 🧪: `fs-write`\]
+	 * > - **File System - Write (Deno: `write`; NodeJS: `fs-write`):**
 	 * >   - *Resources*
 	 * @deprecated Migrate to {@linkcode SymmetricCryptor.decryptFile}.
 	 */
@@ -223,9 +223,9 @@ export class SymmetricCryptor {
 	 * 
 	 * > **🛡️ Runtime Permissions**
 	 * > 
-	 * > - File System - Read \[Deno: `read`; NodeJS (>= v20.9.0) 🧪: `fs-read`\]
+	 * > - **File System - Read (Deno: `read`; NodeJS: `fs-read`):**
 	 * >   - *Resources*
-	 * > - File System - Write \[Deno: `write`; NodeJS (>= v20.9.0) 🧪: `fs-write`\]
+	 * > - **File System - Write (Deno: `write`; NodeJS: `fs-write`):**
 	 * >   - *Resources*
 	 * @param {...(string | URL)} filesPath Path of the files.
 	 * @returns {Promise<this>}
@@ -254,9 +254,9 @@ export class SymmetricCryptor {
 	 * 
 	 * > **🛡️ Runtime Permissions**
 	 * > 
-	 * > - File System - Read \[Deno: `read`; NodeJS (>= v20.9.0) 🧪: `fs-read`\]
+	 * > - **File System - Read (Deno: `read`; NodeJS: `fs-read`):**
 	 * >   - *Resources*
-	 * > - File System - Write \[Deno: `write`; NodeJS (>= v20.9.0) 🧪: `fs-write`\]
+	 * > - **File System - Write (Deno: `write`; NodeJS: `fs-write`):**
 	 * >   - *Resources*
 	 * @deprecated Migrate to {@linkcode SymmetricCryptor.encryptFile}.
 	 */
@@ -266,7 +266,7 @@ export class SymmetricCryptor {
 	 * 
 	 * > **🛡️ Runtime Permissions**
 	 * > 
-	 * > - File System - Read \[Deno: `read`; NodeJS (>= v20.9.0) 🧪: `fs-read`\]
+	 * > - **File System - Read (Deno: `read`; NodeJS: `fs-read`):**
 	 * >   - *Resources*
 	 * @param {string | URL} filePath Path of the file.
 	 * @param {Deno.ReadFileOptions} [options={}] Options.
@@ -280,7 +280,7 @@ export class SymmetricCryptor {
 	 * 
 	 * > **🛡️ Runtime Permissions**
 	 * > 
-	 * > - File System - Read \[Deno: `read`; NodeJS (>= v20.9.0) 🧪: `fs-read`\]
+	 * > - **File System - Read (Deno: `read`; NodeJS: `fs-read`):**
 	 * >   - *Resources*
 	 * @param {string | URL} filePath Path of the file.
 	 * @param {Deno.ReadFileOptions} [options={}] Options.
@@ -294,7 +294,7 @@ export class SymmetricCryptor {
 	 * 
 	 * > **🛡️ Runtime Permissions**
 	 * > 
-	 * > - File System - Write \[Deno: `write`; NodeJS (>= v20.9.0) 🧪: `fs-write`\]
+	 * > - **File System - Write (Deno: `write`; NodeJS: `fs-write`):**
 	 * >   - *Resources*
 	 * @param {string | URL} filePath Path of the file.
 	 * @param {Uint8Array} data Data of the file.
@@ -313,7 +313,7 @@ export class SymmetricCryptor {
 	 * 
 	 * > **🛡️ Runtime Permissions**
 	 * > 
-	 * > - File System - Write \[Deno: `write`; NodeJS (>= v20.9.0) 🧪: `fs-write`\]
+	 * > - **File System - Write (Deno: `write`; NodeJS: `fs-write`):**
 	 * >   - *Resources*
 	 * @param {string | URL} filePath Path of the file.
 	 * @param {string} data Text data of the file.

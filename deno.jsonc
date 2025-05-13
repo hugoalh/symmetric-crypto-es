@@ -9,7 +9,7 @@
 		"useTabs": true
 	},
 	"imports": { // IMPORTANT: Only remap development dependencies!
-		"DNT": "https://raw.githubusercontent.com/hugoalh/deno-nodejs-transformer/v0.7.1/mod.ts",
+		"DNT": "https://raw.githubusercontent.com/hugoalh/deno-nodejs-transformer/v0.7.3/mod.ts",
 		"HUGOALH_DENO_LINT_RULES": "https://raw.githubusercontent.com/hugoalh/deno-lint-rules/v0.7.0/mod.ts"
 	},
 	"lint": {
