@@ -49,9 +49,9 @@ An ECMAScript (JavaScript & TypeScript) module to provide an easier symmetric cr
 
 ### 🛡️ Runtime Permissions
 
-- **File System - Read (Deno: `read`; NodeJS: `fs-read`)**
+- **File System - Read (Deno: `read`; NodeJS: `fs-read`):**
   - *Resources* (Optional)
-- **File System - Write (Deno: `write`; NodeJS: `fs-write`)**
+- **File System - Write (Deno: `write`; NodeJS: `fs-write`):**
   - *Resources* (Optional)
 
 ## 🧩 APIs
