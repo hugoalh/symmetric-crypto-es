@@ -1,8 +1,10 @@
 {
 	"$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
 	"name": "@hugoalh/symmetric-crypto",
-	"version": "4.2.2",
+	"version": "5.0.0-beta.1",
 	"exports": {
+		"./basic": "./basic.ts",
+		"./enhance": "./enhance.ts",
 		".": "./mod.ts"
 	},
 	"imports": {

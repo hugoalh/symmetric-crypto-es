@@ -1,5 +1,9 @@
+import {
+	decodeAscii85,
+	encodeAscii85
+} from "jsr:@std/encoding@^1.0.10/ascii85";
 import { deepStrictEqual } from "node:assert";
-import { createSymmetricCryptor } from "./mod.ts";
+import { SymmetricCryptorEnhance } from "./mod.ts";
 const ignore = !(
 	Deno.args.includes("--force") ||
 	Deno.env.get("GITHUB_ACTIONS") === "true"
@@ -16,40 +20,57 @@ Accusam dolores et eirmod erat sadipscing lorem illum erat commodo vero gubergre
 
 Takimata sea takimata est sit kasd et est lorem nibh in est diam. Ipsum vulputate erat amet invidunt justo te ipsum eos ipsum sed dolor. Amet no et diam. Amet ut et gubergren amet ut sed accusam duis et. Iriure kasd amet amet. In dolor sit hendrerit gubergren nulla et sea autem sanctus diam eos. Magna nonummy labore delenit clita lorem vero eirmod et nonumy sadipscing et ipsum elitr vel consetetur nonumy. Praesent eum at lobortis consequat dolor ut sanctus sadipscing sit. Accusam consetetur no velit aliquam et lorem assum in illum sed sea et et aliquip sea quod amet. Dolor zzril ut et sadipscing vero ut id dolore eu veniam velit kasd. Erat lorem sit consequat feugiat tation at sed dolore dolor sea autem in sadipscing dolore sed.`;
 const sample2UInt8 = new TextEncoder().encode(sample2String);
-Deno.test("Decrypt String 1", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor("<PassWord123456>!!");
-	deepStrictEqual((await cryptor.decrypt("lST)L-9$J[MPqk)3Pe1qa(;,i)Wi]\"4oD9+OE(Hc")), sample1String);
+Deno.test("Decrypt String 1 Base64", { permissions: "none" }, async () => {
+	const cryptor = new SymmetricCryptorEnhance("<PassWord123456>!!");
+	deepStrictEqual(await cryptor.decrypt("6zUMUyY3gQaKqCZZOcFGucdlpnQa5i97PfypJpByA+Y="), sample1String);
+});
+Deno.test("Decrypt String 1 Base64URL", { permissions: "none" }, async () => {
+	const cryptor = new SymmetricCryptorEnhance("<PassWord123456>!!", { cipherTextCoder: "base64url" });
+	deepStrictEqual(await cryptor.decrypt("6zUMUyY3gQaKqCZZOcFGucdlpnQa5i97PfypJpByA-Y="), sample1String);
+});
+Deno.test("Decrypt String 1 ASCII85", { permissions: "none" }, async () => {
+	const cryptor = new SymmetricCryptorEnhance("<PassWord123456>!!", {
+		cipherTextCoder: {
+			decoder(data) {
+				return decodeAscii85(data);
+			},
+			encoder(data) {
+				return encodeAscii85(data);
+			}
+		}
+	});
+	deepStrictEqual(await cryptor.decrypt("lST)L-9$J[MPqk)3Pe1qa(;,i)Wi]\"4oD9+OE(Hc"), sample1String);
 });
 Deno.test("Full String AES-CBC 1", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor("<PassWord123456>!!");
+	const cryptor = new SymmetricCryptorEnhance("<PassWord123456>!!");
 	const encrypted = await cryptor.encrypt(sample1String);
 	console.log(encrypted);
 	const decrypted = await cryptor.decrypt(encrypted);
 	deepStrictEqual(decrypted, sample1String);
 });
 Deno.test("Full String AES-CBC 100", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor("<PassWord123456>!!", { times: 100 });
+	const cryptor = new SymmetricCryptorEnhance("<PassWord123456>!!", { times: 100 });
 	const encrypted = await cryptor.encrypt(sample1String);
 	console.log(encrypted);
 	const decrypted = await cryptor.decrypt(encrypted);
 	deepStrictEqual(decrypted, sample1String);
 });
 Deno.test("Full UInt8 AES-CBC 1", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor("<PassWord123456>!!");
+	const cryptor = new SymmetricCryptorEnhance("<PassWord123456>!!");
 	const encrypted = await cryptor.encrypt(sample1UInt8);
 	console.log(encrypted);
 	const decrypted = await cryptor.decrypt(encrypted);
 	deepStrictEqual(decrypted, sample1UInt8);
 });
 Deno.test("Full UInt8 AES-CBC 100", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor("<PassWord123456>!!", { times: 100 });
+	const cryptor = new SymmetricCryptorEnhance("<PassWord123456>!!", { times: 100 });
 	const encrypted = await cryptor.encrypt(sample1UInt8);
 	console.log(encrypted);
 	const decrypted = await cryptor.decrypt(encrypted);
 	deepStrictEqual(decrypted, sample1UInt8);
 });
 Deno.test("Full String AES-CTR 1", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor({
+	const cryptor = new SymmetricCryptorEnhance({
 		algorithm: "AES-CTR",
 		key: "<PassWord123456>!!"
 	});
@@ -59,7 +80,7 @@ Deno.test("Full String AES-CTR 1", { permissions: "none" }, async () => {
 	deepStrictEqual(decrypted, sample1String);
 });
 Deno.test("Full String AES-CTR 100", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor({
+	const cryptor = new SymmetricCryptorEnhance({
 		algorithm: "AES-CTR",
 		key: "<PassWord123456>!!"
 	}, { times: 100 });
@@ -69,7 +90,7 @@ Deno.test("Full String AES-CTR 100", { permissions: "none" }, async () => {
 	deepStrictEqual(decrypted, sample1String);
 });
 Deno.test("Full UInt8 AES-CTR 1", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor({
+	const cryptor = new SymmetricCryptorEnhance({
 		algorithm: "AES-CTR",
 		key: "<PassWord123456>!!"
 	});
@@ -79,7 +100,7 @@ Deno.test("Full UInt8 AES-CTR 1", { permissions: "none" }, async () => {
 	deepStrictEqual(decrypted, sample1UInt8);
 });
 Deno.test("Full UInt8 AES-CTR 100", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor({
+	const cryptor = new SymmetricCryptorEnhance({
 		algorithm: "AES-CTR",
 		key: "<PassWord123456>!!"
 	}, { times: 100 });
@@ -89,7 +110,7 @@ Deno.test("Full UInt8 AES-CTR 100", { permissions: "none" }, async () => {
 	deepStrictEqual(decrypted, sample1UInt8);
 });
 Deno.test("Full String AES-GCM 1", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor({
+	const cryptor = new SymmetricCryptorEnhance({
 		algorithm: "AES-GCM",
 		key: "<PassWord123456>!!"
 	});
@@ -99,7 +120,7 @@ Deno.test("Full String AES-GCM 1", { permissions: "none" }, async () => {
 	deepStrictEqual(decrypted, sample1String);
 });
 Deno.test("Full String AES-GCM 100", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor({
+	const cryptor = new SymmetricCryptorEnhance({
 		algorithm: "AES-GCM",
 		key: "<PassWord123456>!!"
 	}, { times: 100 });
@@ -109,7 +130,7 @@ Deno.test("Full String AES-GCM 100", { permissions: "none" }, async () => {
 	deepStrictEqual(decrypted, sample1String);
 });
 Deno.test("Full UInt8 AES-GCM 1", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor({
+	const cryptor = new SymmetricCryptorEnhance({
 		algorithm: "AES-GCM",
 		key: "<PassWord123456>!!"
 	});
@@ -119,7 +140,7 @@ Deno.test("Full UInt8 AES-GCM 1", { permissions: "none" }, async () => {
 	deepStrictEqual(decrypted, sample1UInt8);
 });
 Deno.test("Full UInt8 AES-GCM 100", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor({
+	const cryptor = new SymmetricCryptorEnhance({
 		algorithm: "AES-GCM",
 		key: "<PassWord123456>!!"
 	}, { times: 100 });
@@ -129,7 +150,7 @@ Deno.test("Full UInt8 AES-GCM 100", { permissions: "none" }, async () => {
 	deepStrictEqual(decrypted, sample1UInt8);
 });
 Deno.test("Full String AES-CBC,AES-CTR,AES-GCM", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor([
+	const cryptor = new SymmetricCryptorEnhance([
 		{ algorithm: "AES-CBC", key: "<PassWord123456>!!" },
 		{ algorithm: "AES-CTR", key: "<PassWord123456>!!" },
 		{ algorithm: "AES-GCM", key: "<PassWord123456>!!" }
@@ -140,7 +161,7 @@ Deno.test("Full String AES-CBC,AES-CTR,AES-GCM", { permissions: "none" }, async 
 	deepStrictEqual(decrypted, sample1String);
 });
 Deno.test("Full UInt8 AES-CBC,AES-CTR,AES-GCM", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor([
+	const cryptor = new SymmetricCryptorEnhance([
 		{ algorithm: "AES-CBC", key: "<PassWord123456>!!" },
 		{ algorithm: "AES-CTR", key: "<PassWord123456>!!" },
 		{ algorithm: "AES-GCM", key: "<PassWord123456>!!" }
@@ -151,7 +172,7 @@ Deno.test("Full UInt8 AES-CBC,AES-CTR,AES-GCM", { permissions: "none" }, async (
 	deepStrictEqual(decrypted, sample1UInt8);
 });
 Deno.test("Full String Large AES-CBC,AES-CTR,AES-GCM", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor([
+	const cryptor = new SymmetricCryptorEnhance([
 		{ algorithm: "AES-CBC", key: "<PassWord123456>!!" },
 		{ algorithm: "AES-CTR", key: "<PassWord987654>!!" },
 		{ algorithm: "AES-GCM", key: "<PassWord123456>!!" }
@@ -162,7 +183,7 @@ Deno.test("Full String Large AES-CBC,AES-CTR,AES-GCM", { permissions: "none" }, 
 	deepStrictEqual(decrypted, sample2String);
 });
 Deno.test("Full UInt8 Large AES-CBC,AES-CTR,AES-GCM", { permissions: "none" }, async () => {
-	const cryptor = await createSymmetricCryptor([
+	const cryptor = new SymmetricCryptorEnhance([
 		{ algorithm: "AES-CBC", key: "<PassWord123456>!!" },
 		{ algorithm: "AES-CTR", key: "<PassWord987654>!!" },
 		{ algorithm: "AES-GCM", key: "<PassWord123456>!!" }
@@ -181,15 +202,14 @@ Deno.test("Full File Large AES-CBC,AES-CTR,AES-GCM", {
 }, async () => {
 	const tempfile = await Deno.makeTempFile();
 	try {
-		await Deno.writeTextFile(tempfile, sample2String);
-		const cryptor = await createSymmetricCryptor([
+		const cryptor = new SymmetricCryptorEnhance([
 			{ algorithm: "AES-CBC", key: "<PassWord123456>!!" },
 			{ algorithm: "AES-CTR", key: "<PassWord987654>!!" },
 			{ algorithm: "AES-GCM", key: "<PassWord123456>!!" }
 		]);
-		await cryptor.encryptFile(tempfile);
-		await cryptor.decryptFile(tempfile);
-		deepStrictEqual(await Deno.readTextFile(tempfile), sample2String);
+		await cryptor.writeEncryptedTextFile(tempfile, sample2String);
+		const result = await cryptor.readEncryptedTextFile(tempfile);
+		deepStrictEqual(result, sample2String);
 	} finally {
 		await Deno.remove(tempfile);
 	}

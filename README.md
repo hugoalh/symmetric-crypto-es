@@ -57,28 +57,35 @@ An ECMAScript (JavaScript & TypeScript) module to provide an easier symmetric cr
 ## 🧩 APIs
 
 - ```ts
-  class SymmetricCryptor {
+  class SymmetricCryptorBasic {
+    constructor(key: SymmetricCryptorKeyInput | SymmetricCryptorKeyType, options?: SymmetricCryptorOptions);
+    constructor(keys: readonly (SymmetricCryptorKeyInput | SymmetricCryptorKeyType)[], options?: Omit<SymmetricCryptorOptions, "times">);
     decrypt(data: string): Promise<string>;
     decrypt(data: Uint8Array): Promise<Uint8Array>;
-    decryptFile(...filesPath: (string | URL)[]): Promise<this>;
     encrypt(data: string): Promise<string>;
     encrypt(data: Uint8Array): Promise<Uint8Array>;
-    encryptFile(...filesPath: (string | URL)[]): Promise<this>;
-    readEncryptedFile(filePath: string | URL, options?: Deno.ReadFileOptions): Promise<Uint8Array>;
-    readEncryptedTextFile(filePath: string | URL, options?: Deno.ReadFileOptions): Promise<string>;
-    writeEncryptedFile(filePath: string | URL, data: Uint8Array, options?: Omit<Deno.WriteFileOptions, "append">): Promise<this>;
-    writeEncryptedTextFile(filePath: string | URL, data: string, options?: Omit<Deno.WriteFileOptions, "append">): Promise<this>;
   }
   ```
 - ```ts
-  function createSymmetricCryptor(key: SymmetricCryptorKeyInput | SymmetricCryptorKeyType, options?: SymmetricCryptorOptions): Promise<SymmetricCryptor>;
-  function createSymmetricCryptor(keys: (SymmetricCryptorKeyInput | SymmetricCryptorKeyType)[], options?: Omit<SymmetricCryptorOptions, "times">): Promise<SymmetricCryptor>;
+  class SymmetricCryptorEnhance extends SymmetricCryptorBasic {
+    decryptFileInPlace(filePath: string | URL): Promise<void>;
+    encryptFileInPlace(filePath: string | URL): Promise<void>;
+    readEncryptedFile(filePath: string | URL, options?: Deno.ReadFileOptions): Promise<Uint8Array>;
+    readEncryptedTextFile(filePath: string | URL, options?: Deno.ReadFileOptions): Promise<string>;
+    writeEncryptedFile(filePath: string | URL, data: Uint8Array, options?: Omit<Deno.WriteFileOptions, "append">): Promise<void>;
+    writeEncryptedTextFile(filePath: string | URL, data: string, options?: Omit<Deno.WriteFileOptions, "append">): Promise<void>;
+  }
   ```
 - ```ts
   interface SymmetricCryptorOptions {
-    decoder?: SymmetricCryptorCipherTextDecoder;
-    encoder?: SymmetricCryptorCipherTextEncoder;
+    cipherTextCoder?: SymmetricCryptorCipherTextCoderDefault | SymmetricCryptorCipherTextCoderOptions;
     times?: number;
+  }
+  ```
+- ```ts
+  interface SymmetricCryptorCipherTextCoderOptions {
+    decoder: SymmetricCryptorCipherTextDecoder;
+    encoder: SymmetricCryptorCipherTextEncoder;
   }
   ```
 - ```ts
@@ -94,13 +101,25 @@ An ECMAScript (JavaScript & TypeScript) module to provide an easier symmetric cr
     | "AES-GCM";
   ```
 - ```ts
-  type SymmetricCryptorCipherTextDecoder = (input: string) => Uint8Array | Promise<Uint8Array>;
+  type SymmetricCryptorCipherTextDecoder = (data: string) => Uint8Array | Promise<Uint8Array>;
   ```
 - ```ts
-  type SymmetricCryptorCipherTextEncoder = (input: Uint8Array) => string | Promise<string>;
+  type SymmetricCryptorCipherTextEncoder = (data: Uint8Array) => string | Promise<string>;
   ```
 - ```ts
-  type SymmetricCryptorKeyType = string | ArrayBuffer | DataView | Uint8Array | Uint16Array | Uint32Array | BigUint64Array;
+  type SymmetricCryptorCipherTextCoderDefault =
+    | "base64"
+    | "base64url";
+  ```
+- ```ts
+  type SymmetricCryptorKeyType =
+    | string
+    | ArrayBuffer
+    | BigUint64Array
+    | DataView
+    | Uint8Array
+    | Uint16Array
+    | Uint32Array;
   ```
 
 > [!NOTE]
@@ -112,10 +131,10 @@ An ECMAScript (JavaScript & TypeScript) module to provide an easier symmetric cr
 
 - ```ts
   const data = "qwertyuiop";
-  const cryptor = await createSymmetricCryptor("<PassWord123456>!!");
+  const cryptor = new SymmetricCryptorBasic("<PassWord123456>!!");
   const encrypted = await cryptor.encrypt(data);
   console.log(encrypted);
-  // "lST)L-9$J[MPqk)3Pe1qa(;,i)Wi]\"4oD9+OE(Hc"
+  // "6zUMUyY3gQaKqCZZOcFGucdlpnQa5i97PfypJpByA+Y="
   const decrypted = await cryptor.decrypt(encrypted);
   console.log(decrypted);
   // "qwertyuiop"
