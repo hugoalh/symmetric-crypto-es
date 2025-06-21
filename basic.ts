@@ -20,7 +20,7 @@ export type SymmetricCryptorKeyType =
 	| Uint16Array
 	| Uint32Array;
 /**
- * Input of the key of the symmetric cryptor.
+ * Key input of the symmetric cryptor.
  */
 export interface SymmetricCryptorKeyInput {
 	/**
@@ -64,65 +64,68 @@ export interface SymmetricCryptorOptions {
 	 */
 	times?: number;
 }
-class SymmetricCryptoService {
-	#algorithmName: string;
+class SymmetricCryptorService {
+	#algorithm: SymmetricCryptorAlgorithm;
 	#cryptoKey: CryptoKey;
-	#tokenLength: number;
-	#resolveDecryptParameters: (data: Uint8Array) => AesCbcParams | AesCtrParams | AesGcmParams;
-	#resolveEncryptParameters: (token: Uint8Array) => AesCbcParams | AesCtrParams | AesGcmParams;
-	constructor(cryptoKey: CryptoKey) {
+	#saltLength: number;
+	constructor(algorithm: SymmetricCryptorAlgorithm, cryptoKey: CryptoKey) {
+		this.#algorithm = algorithm;
 		this.#cryptoKey = cryptoKey;
-		this.#algorithmName = this.#cryptoKey.algorithm.name;
-		switch (this.#algorithmName) {
+		switch (this.#algorithm) {
+			case "AES-CBC":
+			case "AES-CTR":
+				this.#saltLength = 16;
+				break;
+			case "AES-GCM":
+				this.#saltLength = 12;
+				break;
+		}
+	}
+	#resolveDecryptParameters(data: Uint8Array): AesCbcParams | AesCtrParams | AesGcmParams {
+		switch (this.#algorithm) {
 			case "AES-CBC":
 			case "AES-GCM":
-				this.#tokenLength = (this.#algorithmName === "AES-GCM") ? 12 : 16;
-				this.#resolveDecryptParameters = (data: Uint8Array): AesCbcParams | AesGcmParams => {
-					return {
-						name: this.#algorithmName,
-						iv: data.slice(0, this.#tokenLength)
-					};
+				return {
+					name: this.#algorithm,
+					iv: data.slice(0, this.#saltLength)
 				};
-				this.#resolveEncryptParameters = (token: Uint8Array): AesCbcParams | AesGcmParams => {
-					return {
-						name: this.#algorithmName,
-						iv: token
-					};
-				};
-				break;
 			case "AES-CTR":
-				this.#tokenLength = 16;
-				this.#resolveDecryptParameters = (data: Uint8Array): AesCtrParams => {
-					return {
-						name: this.#algorithmName,
-						counter: data.slice(0, this.#tokenLength),
-						length: 64
-					};
+				return {
+					name: this.#algorithm,
+					counter: data.slice(0, this.#saltLength),
+					length: 64
 				};
-				this.#resolveEncryptParameters = (token: Uint8Array): AesCtrParams => {
-					return {
-						name: this.#algorithmName,
-						counter: token,
-						length: 64
-					};
+		}
+	}
+	#resolveEncryptParameters(salt: Uint8Array): AesCbcParams | AesCtrParams | AesGcmParams {
+		switch (this.#algorithm) {
+			case "AES-CBC":
+			case "AES-GCM":
+				return {
+					name: this.#algorithm,
+					iv: salt
 				};
-				break;
-			default:
-				throw new Error(`Unsupported algorithm \`${this.#algorithmName}\`!`);
+			case "AES-CTR":
+				return {
+					name: this.#algorithm,
+					counter: salt,
+					length: 64
+				};
 		}
 	}
 	async decrypt(data: Uint8Array): Promise<Uint8Array> {
-		return new Uint8Array(await crypto.subtle.decrypt(this.#resolveDecryptParameters(data), this.#cryptoKey, data.slice(this.#tokenLength)));
+		return new Uint8Array(await crypto.subtle.decrypt(this.#resolveDecryptParameters(data), this.#cryptoKey, data.slice(this.#saltLength)));
 	}
 	async encrypt(data: Uint8Array): Promise<Uint8Array> {
-		const token: Uint8Array = crypto.getRandomValues(new Uint8Array(this.#tokenLength));
-		return Uint8Array.from([...token, ...new Uint8Array(await crypto.subtle.encrypt(this.#resolveEncryptParameters(token), this.#cryptoKey, data))]);
+		const salt: Uint8Array = crypto.getRandomValues(new Uint8Array(this.#saltLength));
+		return Uint8Array.from([...salt, ...new Uint8Array(await crypto.subtle.encrypt(this.#resolveEncryptParameters(salt), this.#cryptoKey, data))]);
 	}
-	static async create(input: SymmetricCryptorKeyInput | SymmetricCryptorKeyType): Promise<SymmetricCryptoService> {
+	static async create(input: SymmetricCryptorKeyInput | SymmetricCryptorKeyType): Promise<SymmetricCryptorService> {
 		let algorithm: SymmetricCryptorAlgorithm = "AES-CBC";
-		let key: SymmetricCryptorKeyType;
-		if (
-			typeof input === "string" ||
+		let key: BufferSource;
+		if (typeof input === "string") {
+			key = new TextEncoder().encode(input);
+		} else if (
 			input instanceof ArrayBuffer ||
 			input instanceof BigUint64Array ||
 			input instanceof DataView ||
@@ -138,9 +141,10 @@ class SymmetricCryptoService {
 				}
 				algorithm = input.algorithm;
 			}
-			key = input.key;
+			key = (typeof input.key === "string") ? new TextEncoder().encode(input.key) : input.key;
 		}
-		return new this(await crypto.subtle.importKey("raw", await crypto.subtle.digest("SHA-256", (typeof key === "string") ? new TextEncoder().encode(key) : key), { name: algorithm }, false, ["decrypt", "encrypt"]));
+		const keyFmt: ArrayBuffer = await crypto.subtle.digest("SHA-256", key);
+		return new this(algorithm, await crypto.subtle.importKey("raw", keyFmt, { name: algorithm }, false, ["decrypt", "encrypt"]));
 	}
 }
 function resolveCipherTextCoder(coder: SymmetricCryptorCipherTextCoderDefault | SymmetricCryptorCipherTextCoderOptions = "base64"): SymmetricCryptorCipherTextCoderOptions {
@@ -160,7 +164,7 @@ function resolveCipherTextCoder(coder: SymmetricCryptorCipherTextCoderDefault | 
 	return coder;
 }
 /**
- * A password based cryptor.
+ * A password based cryptor, with basic functions.
  */
 export class SymmetricCryptorBasic {
 	get [Symbol.toStringTag](): string {
@@ -168,11 +172,11 @@ export class SymmetricCryptorBasic {
 	}
 	#cipherTextDecoder: SymmetricCryptorCipherTextDecoder;
 	#cipherTextEncoder: SymmetricCryptorCipherTextEncoder;
-	#cryptoKeysStorage: SymmetricCryptoService[] | undefined;
+	#cryptoKeys: SymmetricCryptorService[] | undefined;
 	#keyIsSingle: boolean;
 	#keyOnSingleRepeats: number = 1;
 	#keysToCryptoKeysFail: Error | undefined = undefined;
-	#keysToCryptoKeysPromise: Promise<SymmetricCryptoService[]> | undefined = undefined;
+	#keysToCryptoKeysPromise: Promise<SymmetricCryptorService[]> | undefined = undefined;
 	/**
 	 * Initialize the symmetric cryptor.
 	 * @param {SymmetricCryptorKeyInput | SymmetricCryptorKeyType} key Key of the symmetric cryptor.
@@ -194,8 +198,8 @@ export class SymmetricCryptorBasic {
 				throw new ReferenceError(`Parameter \`keys\` is not defined!`);
 			}
 			this.#keyIsSingle = false;
-			this.#keysToCryptoKeysPromise = Promise.all(keys.map((key: SymmetricCryptorKeyInput | SymmetricCryptorKeyType): Promise<SymmetricCryptoService> => {
-				return SymmetricCryptoService.create(key);
+			this.#keysToCryptoKeysPromise = Promise.all(keys.map((key: SymmetricCryptorKeyInput | SymmetricCryptorKeyType): Promise<SymmetricCryptorService> => {
+				return SymmetricCryptorService.create(key);
 			}));
 		} else {
 			this.#keyIsSingle = true;
@@ -205,7 +209,7 @@ export class SymmetricCryptorBasic {
 				}
 				this.#keyOnSingleRepeats = options.times;
 			}
-			this.#keysToCryptoKeysPromise = Promise.all([SymmetricCryptoService.create(keys as SymmetricCryptorKeyInput | SymmetricCryptorKeyType)]);
+			this.#keysToCryptoKeysPromise = Promise.all([SymmetricCryptorService.create(keys as SymmetricCryptorKeyInput | SymmetricCryptorKeyType)]);
 		}
 	}
 	/**
@@ -219,14 +223,14 @@ export class SymmetricCryptorBasic {
 	async ready(): Promise<void> {
 		if (typeof this.#keysToCryptoKeysPromise !== "undefined") {
 			try {
-				const result: readonly SymmetricCryptoService[] = await this.#keysToCryptoKeysPromise;
-				this.#cryptoKeysStorage = [];
+				const cryptoKeys: readonly SymmetricCryptorService[] = await this.#keysToCryptoKeysPromise;
+				this.#cryptoKeys = [];
 				if (this.#keyIsSingle) {
 					for (let index: number = 0; index < this.#keyOnSingleRepeats; index += 1) {
-						this.#cryptoKeysStorage.push(result[0]);
+						this.#cryptoKeys.push(cryptoKeys[0]);
 					}
 				} else {
-					this.#cryptoKeysStorage.push(...result);
+					this.#cryptoKeys.push(...cryptoKeys);
 				}
 			} catch (error) {
 				this.#keysToCryptoKeysFail = error as Error;
@@ -237,18 +241,18 @@ export class SymmetricCryptorBasic {
 			throw this.#keysToCryptoKeysFail;
 		}
 	}
-	async #getCryptoKeys(): Promise<readonly SymmetricCryptoService[]> {
+	async #getCryptoKeys(): Promise<readonly SymmetricCryptorService[]> {
 		await this.ready();
 		if (
-			typeof this.#cryptoKeysStorage === "undefined" ||
-			this.#cryptoKeysStorage.length === 0
+			typeof this.#cryptoKeys === "undefined" ||
+			this.#cryptoKeys.length === 0
 		) {
 			throw new Error(`Crypto keys are somehow not exist! Please submit a bug report.`);
 		}
-		return this.#cryptoKeysStorage;
+		return this.#cryptoKeys;
 	}
 	async #decrypt(data: Uint8Array): Promise<Uint8Array> {
-		const cryptoKeys: readonly SymmetricCryptoService[] = await this.#getCryptoKeys();
+		const cryptoKeys: readonly SymmetricCryptorService[] = await this.#getCryptoKeys();
 		if (data.length === 0) {
 			return data;
 		}
@@ -272,12 +276,13 @@ export class SymmetricCryptorBasic {
 	async decrypt(data: Uint8Array): Promise<Uint8Array>;
 	async decrypt(data: string | Uint8Array): Promise<string | Uint8Array> {
 		if (typeof data === "string") {
-			return new TextDecoder().decode(await this.#decrypt(await this.#cipherTextDecoder(data)));
+			const cipherTextDecoded: Uint8Array = await this.#cipherTextDecoder(data);
+			return new TextDecoder().decode(await this.#decrypt(cipherTextDecoded));
 		}
 		return await this.#decrypt(data);
 	}
 	async #encrypt(data: Uint8Array): Promise<Uint8Array> {
-		const cryptoKeys: readonly SymmetricCryptoService[] = await this.#getCryptoKeys();
+		const cryptoKeys: readonly SymmetricCryptorService[] = await this.#getCryptoKeys();
 		let bin: Uint8Array = new Uint8Array(data);
 		for (const cryptoKey of cryptoKeys) {
 			bin = await cryptoKey.encrypt(bin);
@@ -298,7 +303,8 @@ export class SymmetricCryptorBasic {
 	async encrypt(data: Uint8Array): Promise<Uint8Array>;
 	async encrypt(data: string | Uint8Array): Promise<string | Uint8Array> {
 		if (typeof data === "string") {
-			return await this.#cipherTextEncoder(await this.#encrypt(new TextEncoder().encode(data)));
+			const encrypted: Uint8Array = await this.#encrypt(new TextEncoder().encode(data));
+			return await this.#cipherTextEncoder(encrypted);
 		}
 		return await this.#encrypt(data);
 	}

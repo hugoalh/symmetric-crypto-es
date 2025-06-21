@@ -1,10 +1,10 @@
 import { SymmetricCryptorBasic } from "./basic.ts";
 /**
- * A password based cryptor, with additional functions.
+ * A password based cryptor, with standard functions.
  */
-export class SymmetricCryptorEnhance extends SymmetricCryptorBasic {
+export class SymmetricCryptor extends SymmetricCryptorBasic {
 	override get [Symbol.toStringTag](): string {
-		return "SymmetricCryptorEnhance";
+		return "SymmetricCryptor";
 	}
 	/**
 	 * Decrypt the file in place. File will not decrypted if fail to decrypt.
@@ -19,7 +19,9 @@ export class SymmetricCryptorEnhance extends SymmetricCryptorBasic {
 	 * @returns {Promise<void>}
 	 */
 	async decryptFileInPlace(filePath: string | URL): Promise<void> {
-		return await Deno.writeFile(filePath, await this.decrypt(await Deno.readFile(filePath)), { create: false });
+		const context: Uint8Array = await Deno.readFile(filePath);
+		const decrypted: Uint8Array = await this.decrypt(context);
+		return await Deno.writeFile(filePath, decrypted, { create: false });
 	}
 	/**
 	 * Encrypt the file in place. File will not encrypted if fail to encrypt.
@@ -34,7 +36,9 @@ export class SymmetricCryptorEnhance extends SymmetricCryptorBasic {
 	 * @returns {Promise<void>}
 	 */
 	async encryptFileInPlace(filePath: string | URL): Promise<void> {
-		return await Deno.writeFile(filePath, await this.encrypt(await Deno.readFile(filePath)), { create: false });
+		const context: Uint8Array = await Deno.readFile(filePath);
+		const encrypted: Uint8Array = await this.encrypt(context);
+		return await Deno.writeFile(filePath, encrypted, { create: false });
 	}
 	/**
 	 * Read the encrypted file.
@@ -48,7 +52,8 @@ export class SymmetricCryptorEnhance extends SymmetricCryptorBasic {
 	 * @returns {Promise<Uint8Array>} Decrypted data of the file.
 	 */
 	async readEncryptedFile(filePath: string | URL, options?: Deno.ReadFileOptions): Promise<Uint8Array> {
-		return await this.decrypt(await Deno.readFile(filePath, options));
+		const context: Uint8Array = await Deno.readFile(filePath, options);
+		return await this.decrypt(context);
 	}
 	/**
 	 * Read the encrypted text file.
@@ -77,7 +82,8 @@ export class SymmetricCryptorEnhance extends SymmetricCryptorBasic {
 	 * @returns {Promise<void>}
 	 */
 	async writeEncryptedFile(filePath: string | URL, data: Uint8Array, options?: Omit<Deno.WriteFileOptions, "append">): Promise<void> {
-		return await Deno.writeFile(filePath, await this.encrypt(data), {
+		const encrypted: Uint8Array = await this.encrypt(data);
+		return await Deno.writeFile(filePath, encrypted, {
 			...options,
 			append: false
 		});
@@ -98,4 +104,4 @@ export class SymmetricCryptorEnhance extends SymmetricCryptorBasic {
 		return await this.writeEncryptedFile(filePath, new TextEncoder().encode(data), options);
 	}
 }
-export default SymmetricCryptorEnhance;
+export default SymmetricCryptor;

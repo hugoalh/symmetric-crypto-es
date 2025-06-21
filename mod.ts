@@ -10,6 +10,6 @@ export {
 	type SymmetricCryptorOptions
 } from "./basic.ts";
 export {
-	SymmetricCryptorEnhance,
-	SymmetricCryptorEnhance as default
-} from "./enhance.ts";
+	SymmetricCryptor,
+	SymmetricCryptor as default
+} from "./standard.ts";

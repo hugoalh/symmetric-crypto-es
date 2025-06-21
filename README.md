@@ -67,7 +67,7 @@ An ECMAScript (JavaScript & TypeScript) module to provide an easier symmetric cr
   }
   ```
 - ```ts
-  class SymmetricCryptorEnhance extends SymmetricCryptorBasic {
+  class SymmetricCryptor extends SymmetricCryptorBasic {
     decryptFileInPlace(filePath: string | URL): Promise<void>;
     encryptFileInPlace(filePath: string | URL): Promise<void>;
     readEncryptedFile(filePath: string | URL, options?: Deno.ReadFileOptions): Promise<Uint8Array>;
@@ -131,7 +131,7 @@ An ECMAScript (JavaScript & TypeScript) module to provide an easier symmetric cr
 
 - ```ts
   const data = "qwertyuiop";
-  const cryptor = new SymmetricCryptorBasic("<PassWord123456>!!");
+  const cryptor = new SymmetricCryptor("<PassWord123456>!!");
   const encrypted = await cryptor.encrypt(data);
   console.log(encrypted);
   // "6zUMUyY3gQaKqCZZOcFGucdlpnQa5i97PfypJpByA+Y="
