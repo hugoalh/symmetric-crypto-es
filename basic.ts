@@ -81,23 +81,7 @@ class SymmetricCryptorService {
 				break;
 		}
 	}
-	#resolveDecryptParameters(data: Uint8Array): AesCbcParams | AesCtrParams | AesGcmParams {
-		switch (this.#algorithm) {
-			case "AES-CBC":
-			case "AES-GCM":
-				return {
-					name: this.#algorithm,
-					iv: data.slice(0, this.#saltLength)
-				};
-			case "AES-CTR":
-				return {
-					name: this.#algorithm,
-					counter: data.slice(0, this.#saltLength),
-					length: 64
-				};
-		}
-	}
-	#resolveEncryptParameters(salt: Uint8Array): AesCbcParams | AesCtrParams | AesGcmParams {
+	#resolveParameters(salt: Uint8Array): AesCbcParams | AesCtrParams | AesGcmParams {
 		switch (this.#algorithm) {
 			case "AES-CBC":
 			case "AES-GCM":
@@ -114,11 +98,13 @@ class SymmetricCryptorService {
 		}
 	}
 	async decrypt(data: Uint8Array): Promise<Uint8Array> {
-		return new Uint8Array(await crypto.subtle.decrypt(this.#resolveDecryptParameters(data), this.#cryptoKey, data.slice(this.#saltLength)));
+		const salt: Uint8Array = data.slice(0, this.#saltLength);
+		const dataRemain: Uint8Array = data.slice(this.#saltLength);
+		return new Uint8Array(await crypto.subtle.decrypt(this.#resolveParameters(salt), this.#cryptoKey, dataRemain));
 	}
 	async encrypt(data: Uint8Array): Promise<Uint8Array> {
 		const salt: Uint8Array = crypto.getRandomValues(new Uint8Array(this.#saltLength));
-		return Uint8Array.from([...salt, ...new Uint8Array(await crypto.subtle.encrypt(this.#resolveEncryptParameters(salt), this.#cryptoKey, data))]);
+		return Uint8Array.from([...salt, ...new Uint8Array(await crypto.subtle.encrypt(this.#resolveParameters(salt), this.#cryptoKey, data))]);
 	}
 	static async create(input: SymmetricCryptorKeyInput | SymmetricCryptorKeyType): Promise<SymmetricCryptorService> {
 		let algorithm: SymmetricCryptorAlgorithm = "AES-CBC";
