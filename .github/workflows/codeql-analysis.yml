@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
-name: "Invoke CodeQL Analysis"
+name: "CodeQL Analysis"
 on:
   pull_request:
     branches:
@@ -23,15 +23,15 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: "Checkout Repository"
-        uses: "actions/checkout@v5"
+        uses: "actions/checkout@v6"
         with:
           fetch-depth: "0"
       - name: "Initialize CodeQL"
-        uses: "github/codeql-action/init@v3"
+        uses: "github/codeql-action/init@v4"
         with:
           build-mode: "none"
           config-file: "./.codeql.yml"
           trap-caching: "false"
           dependency-caching: "false"
       - name: "Analyze Repository"
-        uses: "github/codeql-action/analyze@v3"
+        uses: "github/codeql-action/analyze@v4"

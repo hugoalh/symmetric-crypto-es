@@ -1,5 +1,5 @@
 {
-	"$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
+	"$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
 	"fmt": {
 		"indentWidth": 4,
 		"lineWidth": 800,
@@ -9,15 +9,20 @@
 		"useTabs": true
 	},
 	"imports": { // IMPORTANT: Only for development dependencies!
-		"DNT": "https://raw.githubusercontent.com/hugoalh/deno-nodejs-transformer/v0.7.3/mod.ts"
+		"DNT": "jsr:@hugoalh/deno-nodejs-transformer@^0.8.0",
+		"NPP": "https://raw.githubusercontent.com/hugoalh/npm-publish-patcher/caab384376582dd7563b255c740e8b322f82247e/deno/cli.ts",
+		"STD_JSONC": "jsr:@std/jsonc@^1.0.2"
 	},
 	"lint": {
 		"plugins": [
-			"jsr:@hugoalh/deno-lint-rules@^0.10.0/hugoalh/library"
+			"jsr:@hugoalh/deno-lint-rules@^0.14.0/presets/library"
 		],
 		"rules": {
 			"tags": [
 				"recommended"
+			],
+			"exclude": [
+				"no-import-prefix"
 			],
 			"include": [
 				"default-param-last",
@@ -41,32 +46,24 @@
 	"lock": false,
 	"tasks": {
 		"jsr-check": {
-			"command": "deno publish --allow-dirty --config \"$(deno task jsr-var-manifest-relative)\" --dry-run --no-provenance",
-			"description": "Check package for JSR."
+			"command": "deno task jsr-publish --dry-run --no-provenance",
+			"description": "Check for JSR."
 		},
 		"jsr-publish": {
-			"command": "deno publish --allow-dirty --config \"$(deno task jsr-var-manifest-relative)\"",
-			"description": "Publish package to JSR."
+			"command": "deno publish --allow-dirty --config \"jsr.jsonc\" --no-check",
+			"description": "Publish to JSR."
 		},
-		"jsr-var-manifest-relative": {
-			"command": "echo \"jsr.jsonc\"",
-			"description": "Variable of the JSR manifest file relative path."
+		"npm-npm-build": {
+			"command": "deno run --allow-all --no-prompt --quiet .npm-npm.build.ts",
+			"description": "Build for NPM."
 		},
-		"npm-build": {
-			"command": "deno run --allow-all --no-prompt --quiet .dnt.ts",
-			"description": "Build package for NPM."
+		"npm-npm-check": {
+			"command": "deno task npm-npm-publish --dry-run",
+			"description": "Check for NPM."
 		},
-		"npm-check": {
-			"command": "deno task --cwd \"$(deno task npm-var-distribution-relative)\" --eval \"npm publish --dry-run\"",
-			"description": "Check package for NPM."
-		},
-		"npm-publish": {
-			"command": "deno task --cwd \"$(deno task npm-var-distribution-relative)\" --eval \"npm publish --tag publish\"",
-			"description": "Publish package to NPM."
-		},
-		"npm-var-distribution-relative": {
-			"command": "echo \"dist/npm\"",
-			"description": "Variable of the NPM distribution directory relative path."
+		"npm-npm-publish": {
+			"command": "deno run --allow-all --no-prompt --quiet NPP --cleanup --cwd \"dist/npm-npm\" --ignore-ppv",
+			"description": "Publish to NPM."
 		}
 	},
 	"unstable": [
