@@ -9,7 +9,7 @@
 		"useTabs": true
 	},
 	"imports": { // IMPORTANT: Only for development dependencies!
-		"DNT": "jsr:@hugoalh/deno-nodejs-transformer@^0.8.0",
+		"DNT": "jsr:@hugoalh/deno-nodejs-transformer@^0.9.3",
 		"NPP": "https://raw.githubusercontent.com/hugoalh/npm-publish-patcher/fbd82394a858cbbb5d641a7ebdf1b997ed34f30c/deno/cli.ts",
 		"STD_JSONC": "jsr:@std/jsonc@^1.0.2"
 	},
