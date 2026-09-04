@@ -21,22 +21,22 @@ await transform({
 			"crypto",
 			"symmetric"
 		],
-		homepage: "https://github.com/hugoalh/symmetric-crypto-es#readme",
+		homepage: "https://codeberg.org/hugoalh/symmetric-crypto-es#readme",
 		bugs: {
-			url: "https://github.com/hugoalh/symmetric-crypto-es/issues"
+			url: "https://codeberg.org/hugoalh/symmetric-crypto-es/issues"
 		},
 		license: "MIT",
 		author: "hugoalh",
 		repository: {
 			type: "git",
-			url: "git+https://github.com/hugoalh/symmetric-crypto-es.git"
+			url: "git+https://codeberg.org/hugoalh/symmetric-crypto-es.git"
 		},
 		private: false,
 		publishConfig: {
 			access: "public"
 		}
 	},
-	outputDirectory: "dist/npm-npm",
+	outputDirectory: "dist/npm-codeberg",
 	outputDirectoryPreEmpty: true,
 	shims: {
 		blob: false,

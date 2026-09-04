@@ -36,7 +36,7 @@ await transform({
 			access: "public"
 		}
 	},
-	outputDirectory: "dist/npm-npm",
+	outputDirectory: "dist/npm-github",
 	outputDirectoryPreEmpty: true,
 	shims: {
 		blob: false,
