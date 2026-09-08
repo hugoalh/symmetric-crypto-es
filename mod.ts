@@ -160,6 +160,7 @@ export class SymmetricCryptorEncryptPipe extends TransformStream<Uint8Array, Uin
 	}
 	#cipher: Cipheriv;
 	#iv: Uint8Array;
+	#ivLock: boolean = false;
 	#mode: CipherMode | undefined;
 	/**
 	 * Initialize; Only able to create new instance from {@linkcode SymmetricCryptor.encryptPipe}.
@@ -173,10 +174,12 @@ export class SymmetricCryptorEncryptPipe extends TransformStream<Uint8Array, Uin
 			mode
 		}: CPCEP_SymmetricCryptor = getCPCEPSymmetricCryptor(s);
 		super({
-			start: (controller: TransformStreamDefaultController<Uint8Array>): void => {
-				controller.enqueue(this.#iv);
-			},
 			transform: (chunk: Uint8Array, controller: TransformStreamDefaultController<Uint8Array>): void => {
+				// NOTE: Use `TransformStream.start` with `this` will cause error.
+				if (!this.#ivLock) {
+					controller.enqueue(this.#iv);
+					this.#ivLock = true;
+				}
 				controller.enqueue(Uint8Array.from(this.#cipher.update(chunk)));
 			},
 			flush: (controller: TransformStreamDefaultController<Uint8Array>): void => {
@@ -184,14 +187,15 @@ export class SymmetricCryptorEncryptPipe extends TransformStream<Uint8Array, Uin
 				if (this.#mode === "gcm") {
 					controller.enqueue(Uint8Array.from((this.#cipher as CipherGCM).getAuthTag()));
 				}
+				this.#ivLock = false;
 			}
 		});
 		this.#mode = mode;
-		this.#iv = (ivLength > 0) ? randomBytes(ivLength) : Uint8Array.from([]);
+		this.#iv = (ivLength > 0) ? randomBytes(ivLength) : Uint8Array.from([]);;
 		this.#cipher = (this.#mode === "gcm") ? createCipheriv(algorithm, key, this.#iv, {
 			//@ts-expect-error Overload.
 			authTagLength: 16
-		} satisfies CipherGCMOptions) : createCipheriv(algorithm, key, this.#iv);
+		} satisfies CipherGCMOptions) : createCipheriv(algorithm, key, this.#iv);;
 	}
 }
 export interface SymmetricCryptorOptions {
