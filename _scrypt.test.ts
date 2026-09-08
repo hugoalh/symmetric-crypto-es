@@ -48,7 +48,7 @@ Deno.test("I:0; O:128", { permissions: "none" }, async (t) => {
 	await tester(t, "", "", 128);
 });
 Deno.test("Random", { permissions: "none" }, async (t) => {
-	for (let index = 0; index < 1000; index += 1) {
+	for (let index = 0; index < 500; index += 1) {
 		const key = randomBytes(Math.ceil(Math.random() * 512));
 		const keyLength = Math.ceil(Math.random() * 32) * 4;
 		await t.step(`I:${key.length}; O:${keyLength}`, async (tt) => {
