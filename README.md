@@ -20,8 +20,7 @@ Any runtime which support ECMAScript should able to use this; These runtimes are
 
 ## 🛡️ Runtime Permissions
 
-- File System - Read (Deno: `read`; NodeJS: `fs-read`) (Optional)
-- File System - Write (Deno: `write`; NodeJS: `fs-write`) (Optional)
+This does not request any runtime permission.
 
 ## #️⃣ Entrypoints
 
