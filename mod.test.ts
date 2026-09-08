@@ -50,7 +50,7 @@ async function testerStream(t: Deno.TestContext, key: string, filePath: string |
 		await t.step(algorithm, async () => {
 			const cryptor = await createSymmetricCrypto(key, { algorithm });
 			await using file = await Deno.open(filePath);
-			const result = new Response(file.readable.pipeThrough(cryptor.encryptPipe()).pipeThrough(cryptor.decryptPipe())).bytes();
+			const result = await new Response(file.readable.pipeThrough(cryptor.encryptPipe()).pipeThrough(cryptor.decryptPipe())).bytes();
 			deepStrictEqual(result, await Deno.readFile(filePath));
 		});
 	}
