@@ -1,4 +1,5 @@
 import {
+	deepStrictEqual,
 	doesNotReject,
 	doesNotThrow,
 	ok
@@ -26,29 +27,31 @@ async function tester(t: Deno.TestContext, password: BinaryLike, salt: BinaryLik
 			resultSync = scryptSync(password, salt, keyLength, options);
 		});
 	});
+	await t.step("Assert", () => {
+		deepStrictEqual(resultAsync.length, keyLength);
+		deepStrictEqual(resultSync.length, keyLength);
+	});
 	await t.step("Compare", () => {
-		console.log(resultAsync);
-		console.log(resultSync);
 		ok(timingSafeEqual(resultAsync, resultSync));
 	});
 }
-Deno.test("Empty 16", { permissions: "none" }, async (t) => {
+Deno.test("I:0; O:16", { permissions: "none" }, async (t) => {
 	await tester(t, "", "", 16);
 });
-Deno.test("Empty 32", { permissions: "none" }, async (t) => {
+Deno.test("I:0; O:32", { permissions: "none" }, async (t) => {
 	await tester(t, "", "", 32);
 });
-Deno.test("Empty 64", { permissions: "none" }, async (t) => {
+Deno.test("I:0; O:64", { permissions: "none" }, async (t) => {
 	await tester(t, "", "", 64);
 });
-Deno.test("Empty 128", { permissions: "none" }, async (t) => {
+Deno.test("I:0; O:128", { permissions: "none" }, async (t) => {
 	await tester(t, "", "", 128);
 });
 Deno.test("Random", { permissions: "none" }, async (t) => {
 	for (let index = 0; index < 1000; index += 1) {
 		const key = randomBytes(Math.ceil(Math.random() * 512));
 		const keyLength = Math.ceil(Math.random() * 32) * 4;
-		await t.step(`${key.length}:${keyLength}`, async (tt) => {
+		await t.step(`I:${key.length}; O:${keyLength}`, async (tt) => {
 			await tester(tt, key, key, keyLength);
 		});
 	}
