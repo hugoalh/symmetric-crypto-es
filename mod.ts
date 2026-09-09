@@ -45,7 +45,9 @@ const algorithmsSelect: readonly SymmetricCryptoAlgorithm[] = [/* UNIQUE */
 	"aes-256-gcm",
 	"des-ede3-cbc"
 ];
-const algorithmsFinal: readonly string[] = getCiphers().filter((algorithm: string): boolean => {
+const algorithmsFinal: readonly string[] = getCiphers().map((algorithm: string): string => {
+	return algorithm.toLowerCase();
+}).filter((algorithm: string): boolean => {
 	return algorithmsSelect.includes(algorithm as SymmetricCryptoAlgorithm);
 }).sort();
 interface CPCEP_SymmetricCryptor {
