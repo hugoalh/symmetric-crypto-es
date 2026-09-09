@@ -35,17 +35,17 @@ async function tester(t: Deno.TestContext, password: BinaryLike, salt: BinaryLik
 		ok(timingSafeEqual(resultAsync, resultSync));
 	});
 }
+Deno.test("I:0; O:12", { permissions: "none" }, async (t) => {
+	await tester(t, "", "", 12);
+});
 Deno.test("I:0; O:16", { permissions: "none" }, async (t) => {
 	await tester(t, "", "", 16);
 });
+Deno.test("I:0; O:24", { permissions: "none" }, async (t) => {
+	await tester(t, "", "", 24);
+});
 Deno.test("I:0; O:32", { permissions: "none" }, async (t) => {
 	await tester(t, "", "", 32);
-});
-Deno.test("I:0; O:64", { permissions: "none" }, async (t) => {
-	await tester(t, "", "", 64);
-});
-Deno.test("I:0; O:128", { permissions: "none" }, async (t) => {
-	await tester(t, "", "", 128);
 });
 Deno.test("Random", { permissions: "none" }, async (t) => {
 	for (let index = 0; index < 500; index += 1) {
