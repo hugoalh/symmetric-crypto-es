@@ -4,13 +4,15 @@ import {
 	type Decipheriv
 } from "node:crypto";
 /**
- * \[LEGACY: symencdec.2\]
+ * **\[LEGACY\]**
  * 
  * Symmetric cryptor, a password based cryptor.
+ * 
+ * **Edition:** symencdec.2
  */
-export class SymmetricCryptorLegacy {
+export class SymmetricCryptor {
 	get [Symbol.toStringTag](): string {
-		return "SymmetricCryptorLegacy";
+		return "SymmetricCryptor";
 	}
 	#passphrase: Uint8Array;
 	/**
@@ -49,4 +51,4 @@ export class SymmetricCryptorLegacy {
 		}).join("\r\n");
 	}
 }
-export default SymmetricCryptorLegacy;
+export default SymmetricCryptor;

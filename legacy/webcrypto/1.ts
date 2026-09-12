@@ -1,3 +1,4 @@
+import { CPCEPBin } from "../../_cpcep_bin.ts";
 export type SymmetricCryptoAlgorithm =
 	| "AES-CBC"
 	| "AES-CTR"
@@ -10,9 +11,6 @@ export type SymmetricCryptoKeyType =
 	| Uint16Array
 	| Uint32Array
 	| BigUint64Array;
-/**
- * Input of the key of the symmetric cryptor.
- */
 export interface SymmetricCryptorKeyInput {
 	/**
 	 * Algorithm of the symmetric crypto.
@@ -24,38 +22,31 @@ export interface SymmetricCryptorKeyInput {
 	 */
 	key: SymmetricCryptoKeyType;
 }
-interface SymmetricCryptorPayload {
+interface SymmetricCryptorKeyPayload {
 	algorithm: SymmetricCryptoAlgorithm;
 	key: CryptoKey;
 }
-const binCPCEPSymmetricCryptor: Map<symbol, SymmetricCryptorPayload[]> = new Map<symbol, SymmetricCryptorPayload[]>();
-function getCPCEPSymmetricCryptor(s: symbol): SymmetricCryptorPayload[] {
-	const payload: SymmetricCryptorPayload[] | undefined = binCPCEPSymmetricCryptor.get(s);
-	binCPCEPSymmetricCryptor.delete(s);
-	if (typeof payload === "undefined") {
-		throw new ReferenceError(`Unknown Symmetric Cryptor payload!`);
-	}
-	return payload;
-}
-function setCPCEPSymmetricCryptor(s: symbol, payload: SymmetricCryptorPayload[]): void {
-	binCPCEPSymmetricCryptor.set(s, payload);
-}
+const binCPCEPSymmetricCryptor: CPCEPBin<SymmetricCryptorKeyPayload[]> = new CPCEPBin<SymmetricCryptorKeyPayload[]>({
+	errorGetUndefined: new ReferenceError(`Unknown Symmetric Cryptor payload!`)
+});
 /**
- * \[LEGACY: webcrypto.1\]
+ * **\[LEGACY\]**
  * 
  * Symmetric cryptor, a password based cryptor.
+ * 
+ * **Edition:** webcrypto.1
  */
-export class SymmetricCryptorLegacy {
+export class SymmetricCryptor {
 	get [Symbol.toStringTag](): string {
-		return "SymmetricCryptorLegacy";
+		return "SymmetricCryptor";
 	}
-	#payloads: readonly SymmetricCryptorPayload[];
+	#payloads: readonly SymmetricCryptorKeyPayload[];
 	/**
 	 * Initialize; Only able to create new instance from {@linkcode createSymmetricCryptor}.
 	 * @param {symbol} s CPCEP symbol.
 	 */
 	private constructor(s: symbol) {
-		this.#payloads = getCPCEPSymmetricCryptor(s);
+		this.#payloads = binCPCEPSymmetricCryptor.getAndDelete(s);
 	}
 	/**
 	 * Decrypt data.
@@ -71,7 +62,7 @@ export class SymmetricCryptorLegacy {
 			const {
 				algorithm,
 				key
-			}: SymmetricCryptorPayload = this.#payloads[index];
+			}: SymmetricCryptorKeyPayload = this.#payloads[index];
 			let algorithmPayload: AlgorithmIdentifier | AesCbcParams | AesCtrParams | AesGcmParams;
 			let context: BufferSource;
 			switch (algorithm) {
@@ -105,7 +96,7 @@ export class SymmetricCryptorLegacy {
 		return storage;
 	}
 }
-async function createCryptorKey(input: SymmetricCryptorKeyInput | SymmetricCryptoKeyType): Promise<SymmetricCryptorPayload> {
+async function createCryptorKey(input: SymmetricCryptorKeyInput | SymmetricCryptoKeyType): Promise<SymmetricCryptorKeyPayload> {
 	let algorithm: SymmetricCryptoAlgorithm;
 	let key: SymmetricCryptoKeyType;
 	if (
@@ -137,39 +128,45 @@ export interface SymmetricCryptorOptions {
 	times?: number;
 }
 /**
- * \[LEGACY: webcrypto.1\]
+ * **\[LEGACY\]**
  * 
- * Create new instance of the {@link SymmetricCryptorLegacy symmetric cryptor}.
+ * Create new instance of the {@link SymmetricCryptor symmetric cryptor}.
+ * 
+ * **Edition:** webcrypto.1
  * @param {SymmetricCryptoKeyType} key Key.
  * @param {SymmetricCryptorOptions} [options] Options.
- * @returns {Promise<SymmetricCryptorLegacy>}
+ * @returns {Promise<SymmetricCryptor>}
  */
-export async function createSymmetricCryptor(key: SymmetricCryptoKeyType, options?: SymmetricCryptorOptions): Promise<SymmetricCryptorLegacy>;
+export async function createSymmetricCryptor(key: SymmetricCryptoKeyType, options?: SymmetricCryptorOptions): Promise<SymmetricCryptor>;
 /**
- * \[LEGACY: webcrypto.1\]
+ * **\[LEGACY\]**
  * 
- * Create new instance of the {@link SymmetricCryptorLegacy symmetric cryptor}.
+ * Create new instance of the {@link SymmetricCryptor symmetric cryptor}.
+ * 
+ * **Edition:** webcrypto.1
  * @param {SymmetricCryptorKeyInput} input Input of the key.
  * @param {SymmetricCryptorOptions} [options] Options.
- * @returns {Promise<SymmetricCryptorLegacy>}
+ * @returns {Promise<SymmetricCryptor>}
  */
-export async function createSymmetricCryptor(input: SymmetricCryptorKeyInput, options?: SymmetricCryptorOptions): Promise<SymmetricCryptorLegacy>;
+export async function createSymmetricCryptor(input: SymmetricCryptorKeyInput, options?: SymmetricCryptorOptions): Promise<SymmetricCryptor>;
 /**
- * \[LEGACY: webcrypto.1\]
+ * **\[LEGACY\]**
  * 
- * Create new instance of the {@link SymmetricCryptorLegacy symmetric cryptor}.
+ * Create new instance of the {@link SymmetricCryptor symmetric cryptor}.
+ * 
+ * **Edition:** webcrypto.1
  * @param {(SymmetricCryptorKeyInput | SymmetricCryptoKeyType)[]} inputs Inputs of the key.
- * @returns {Promise<SymmetricCryptorLegacy>}
+ * @returns {Promise<SymmetricCryptor>}
  */
-export async function createSymmetricCryptor(inputs: (SymmetricCryptorKeyInput | SymmetricCryptoKeyType)[]): Promise<SymmetricCryptorLegacy>;
-export async function createSymmetricCryptor(param0: SymmetricCryptorKeyInput | SymmetricCryptoKeyType | (SymmetricCryptorKeyInput | SymmetricCryptoKeyType)[], options: SymmetricCryptorOptions = {}): Promise<SymmetricCryptorLegacy> {
-	const payloads: SymmetricCryptorPayload[] = [];
+export async function createSymmetricCryptor(inputs: (SymmetricCryptorKeyInput | SymmetricCryptoKeyType)[]): Promise<SymmetricCryptor>;
+export async function createSymmetricCryptor(param0: SymmetricCryptorKeyInput | SymmetricCryptoKeyType | (SymmetricCryptorKeyInput | SymmetricCryptoKeyType)[], options: SymmetricCryptorOptions = {}): Promise<SymmetricCryptor> {
+	const payloads: SymmetricCryptorKeyPayload[] = [];
 	if (Array.isArray(param0)) {
-		payloads.push(...await Promise.all(param0.map((input: SymmetricCryptorKeyInput | SymmetricCryptoKeyType): Promise<SymmetricCryptorPayload> => {
+		payloads.push(...await Promise.all(param0.map((input: SymmetricCryptorKeyInput | SymmetricCryptoKeyType): Promise<SymmetricCryptorKeyPayload> => {
 			return createCryptorKey(input);
 		})));
 	} else {
-		const cryptor: SymmetricCryptorPayload = await createCryptorKey(param0);
+		const cryptor: SymmetricCryptorKeyPayload = await createCryptorKey(param0);
 		if (typeof options.times === "undefined") {
 			payloads.push(cryptor);
 		} else {
@@ -184,9 +181,9 @@ export async function createSymmetricCryptor(param0: SymmetricCryptorKeyInput | 
 	if (payloads.length > 0) {
 		//deno-lint-ignore hugoalh/symbol-description -- Private symbol.
 		const s: symbol = Symbol();
-		setCPCEPSymmetricCryptor(s, payloads);
+		binCPCEPSymmetricCryptor.set(s, payloads);
 		//@ts-expect-error Private constructor.
-		return new SymmetricCryptorLegacy(s);
+		return new SymmetricCryptor(s);
 	}
 	throw new Error(`Parameter \`inputs\` is not defined!`);
 }

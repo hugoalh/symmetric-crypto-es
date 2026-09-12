@@ -9,13 +9,15 @@ function checkTimes(times: number): void {
 	}
 }
 /**
- * \[LEGACY: symencdec.3\]
+ * **\[LEGACY\]**
  * 
  * Symmetric cryptor, a password based cryptor.
+ * 
+ * **Edition:** symencdec.3
  */
-export class SymmetricCryptorLegacy {
+export class SymmetricCryptor {
 	get [Symbol.toStringTag](): string {
-		return "SymmetricCryptorLegacy";
+		return "SymmetricCryptor";
 	}
 	#passphrase: Uint8Array;
 	/**
@@ -69,4 +71,4 @@ export class SymmetricCryptorLegacy {
 		return result;
 	}
 }
-export default SymmetricCryptorLegacy;
+export default SymmetricCryptor;

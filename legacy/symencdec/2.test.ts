@@ -1,8 +1,8 @@
 import { deepStrictEqual } from "node:assert";
-import { SymmetricCryptorLegacy } from "./2.ts";
-Deno.test("Main", { permissions: "none" }, async (t) => {
+import { SymmetricCryptor } from "./2.ts";
+Deno.test("1", { permissions: "none" }, async (t) => {
 	const sample = `Hello, world!\nFoo.\nBar.`;
-	const cryptor = new SymmetricCryptorLegacy("githubnode");
+	const cryptor = new SymmetricCryptor("githubnode");
 	await t.step("Single Line", () => {
 		deepStrictEqual(cryptor.decrypt("TIdMOTTeor6q79ilfKkcInvWqQ/U4UUK5oXRSXxWhTbNpL88i/QDly9NFCt1d6JwkDWJ0nkLGKwsWbcA6tM2yg=="), sample);
 	});
