@@ -38,69 +38,36 @@ This does not request any runtime permission.
 ## 🧩 APIs
 
 - ```ts
-  class SymmetricCryptorBasic {
-    constructor(key: SymmetricCryptorKeyInput | SymmetricCryptorKeyType, options?: SymmetricCryptorOptions);
-    constructor(keys: readonly (SymmetricCryptorKeyInput | SymmetricCryptorKeyType)[], options?: Omit<SymmetricCryptorOptions, "times">);
-    decrypt(data: string): Promise<string>;
-    decrypt(data: Uint8Array): Promise<Uint8Array>;
-    encrypt(data: string): Promise<string>;
-    encrypt(data: Uint8Array): Promise<Uint8Array>;
+  class SymmetricCryptor {
+    decrypt(data: Uint8Array): Uint8Array;
+    decryptStream(): SymmetricCryptorDecryptStream | SymmetricCryptorDecryptStreamAuthTag | SymmetricCryptorDecryptStreamCCM;
+    encrypt(data: Uint8Array): Uint8Array;
+    encryptStream(): SymmetricCryptorEncryptStream | SymmetricCryptorEncryptStreamCCM;
   }
   ```
 - ```ts
-  class SymmetricCryptor extends SymmetricCryptorBasic {
-    decryptFileInPlace(filePath: string | URL): Promise<void>;
-    encryptFileInPlace(filePath: string | URL): Promise<void>;
-    readEncryptedFile(filePath: string | URL, options?: Deno.ReadFileOptions): Promise<Uint8Array>;
-    readEncryptedTextFile(filePath: string | URL, options?: Deno.ReadFileOptions): Promise<string>;
-    writeEncryptedFile(filePath: string | URL, data: Uint8Array, options?: Omit<Deno.WriteFileOptions, "append">): Promise<void>;
-    writeEncryptedTextFile(filePath: string | URL, data: string, options?: Omit<Deno.WriteFileOptions, "append">): Promise<void>;
-  }
+  class SymmetricCryptorDecryptStream extends TransformStream<Uint8Array, Uint8Array>;
+  ```
+- ```ts
+  class SymmetricCryptorDecryptStreamAuthTag extends TransformStream<Uint8Array, Uint8Array>;
+  ```
+- ```ts
+  class SymmetricCryptorDecryptStreamCCM extends TransformStream<Uint8Array, Uint8Array>;
+  ```
+- ```ts
+  class SymmetricCryptorEncryptStream extends TransformStream<Uint8Array, Uint8Array>;
+  ```
+- ```ts
+  class SymmetricCryptorEncryptStreamCCM extends TransformStream<Uint8Array, Uint8Array>;
+  ```
+- ```ts
+  function createSymmetricCryptor(key: BinaryLike, options?: SymmetricCryptorOptions): Promise<SymmetricCryptor>;
   ```
 - ```ts
   interface SymmetricCryptorOptions {
-    cipherTextCoder?: SymmetricCryptorCipherTextCoderDefault | SymmetricCryptorCipherTextCoderOptions;
-    times?: number;
+    algorithm?: SymmetricCryptoAlgorithm;
+    scrypt?: ScryptOptions;
   }
-  ```
-- ```ts
-  interface SymmetricCryptorCipherTextCoderOptions {
-    decoder: SymmetricCryptorCipherTextDecoder;
-    encoder: SymmetricCryptorCipherTextEncoder;
-  }
-  ```
-- ```ts
-  interface SymmetricCryptorKeyInput {
-    algorithm?: SymmetricCryptorAlgorithm;
-    key: SymmetricCryptorKeyType;
-  }
-  ```
-- ```ts
-  type SymmetricCryptorAlgorithm =
-    | "AES-CBC"
-    | "AES-CTR"
-    | "AES-GCM";
-  ```
-- ```ts
-  type SymmetricCryptorCipherTextDecoder = (data: string) => Uint8Array | Promise<Uint8Array>;
-  ```
-- ```ts
-  type SymmetricCryptorCipherTextEncoder = (data: Uint8Array) => string | Promise<string>;
-  ```
-- ```ts
-  type SymmetricCryptorCipherTextCoderDefault =
-    | "base64"
-    | "base64url";
-  ```
-- ```ts
-  type SymmetricCryptorKeyType =
-    | string
-    | ArrayBuffer
-    | BigUint64Array
-    | DataView
-    | Uint8Array
-    | Uint16Array
-    | Uint32Array;
   ```
 
 > [!NOTE]
@@ -112,11 +79,12 @@ This does not request any runtime permission.
 
 - ```ts
   const data = "qwertyuiop";
-  const cryptor = new SymmetricCryptor("<PassWord123456>!!");
-  const encrypted = await cryptor.encrypt(data);
-  console.log(encrypted);
-  // "6zUMUyY3gQaKqCZZOcFGucdlpnQa5i97PfypJpByA+Y="
-  const decrypted = await cryptor.decrypt(encrypted);
-  console.log(decrypted);
-  // "qwertyuiop"
+  const cryptor = await createSymmetricCryptor("QwErTyUiOp");
+  const encrypted = cryptor.encrypt(new TextEncoder().encode(data));
+  const decrypted = cryptor.decrypt(encrypted);
+  ```
+- ```ts
+  const cryptor = await createSymmetricCryptor("QwErTyUiOp");
+  await using file = await Deno.open(filePath);
+  const encrypted = file.readable.pipeThrough(cryptor.encryptStream());
   ```

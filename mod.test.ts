@@ -1,25 +1,14 @@
 import { deepStrictEqual } from "node:assert";
 import {
-	createSymmetricCrypto,
+	createSymmetricCryptor,
+	getSymmetricCryptoAlgorithms,
 	type SymmetricCryptoAlgorithm
 } from "./mod.ts";
-const algorithms: readonly SymmetricCryptoAlgorithm[] = [/* UNIQUE */
-	"aes-128-cbc",
-	"aes-128-ctr",
-	"aes-128-ecb",
-	"aes-128-gcm",
-	"aes-192-ctr",
-	"aes-192-ecb",
-	"aes-256-cbc",
-	"aes-256-ctr",
-	"aes-256-ecb",
-	"aes-256-gcm",
-	"des-ede3-cbc"
-];
+console.log(`Algorithms: ${getSymmetricCryptoAlgorithms().join(", ")}`);
 async function testerDirect(t: Deno.TestContext, key: string, context: Uint8Array): Promise<void> {
-	for (const algorithm of algorithms) {
+	for (const algorithm of getSymmetricCryptoAlgorithms()) {
 		await t.step(algorithm, async () => {
-			const cryptor = await createSymmetricCrypto(key, { algorithm });
+			const cryptor = await createSymmetricCryptor(key, { algorithm: algorithm as SymmetricCryptoAlgorithm });
 			const encrypted = cryptor.encrypt(context);
 			deepStrictEqual(cryptor.decrypt(encrypted), context);
 		});
@@ -46,11 +35,11 @@ Accusam dolores et eirmod erat sadipscing lorem illum erat commodo vero gubergre
 Takimata sea takimata est sit kasd et est lorem nibh in est diam. Ipsum vulputate erat amet invidunt justo te ipsum eos ipsum sed dolor. Amet no et diam. Amet ut et gubergren amet ut sed accusam duis et. Iriure kasd amet amet. In dolor sit hendrerit gubergren nulla et sea autem sanctus diam eos. Magna nonummy labore delenit clita lorem vero eirmod et nonumy sadipscing et ipsum elitr vel consetetur nonumy. Praesent eum at lobortis consequat dolor ut sanctus sadipscing sit. Accusam consetetur no velit aliquam et lorem assum in illum sed sea et et aliquip sea quod amet. Dolor zzril ut et sadipscing vero ut id dolore eu veniam velit kasd. Erat lorem sit consequat feugiat tation at sed dolore dolor sea autem in sadipscing dolore sed.`));
 });
 async function testerStream(t: Deno.TestContext, key: string, filePath: string | URL): Promise<void> {
-	for (const algorithm of algorithms) {
+	for (const algorithm of getSymmetricCryptoAlgorithms()) {
 		await t.step(algorithm, async () => {
-			const cryptor = await createSymmetricCrypto(key, { algorithm });
+			const cryptor = await createSymmetricCryptor(key, { algorithm: algorithm as SymmetricCryptoAlgorithm });
 			await using file = await Deno.open(filePath);
-			const result = await new Response(file.readable.pipeThrough(cryptor.encryptPipe()).pipeThrough(cryptor.decryptPipe())).bytes();
+			const result = await new Response(file.readable.pipeThrough(cryptor.encryptStream()).pipeThrough(cryptor.decryptStream())).bytes();
 			deepStrictEqual(result, await Deno.readFile(filePath));
 		});
 	}
