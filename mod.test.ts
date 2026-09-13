@@ -2,7 +2,9 @@ import { deepStrictEqual } from "node:assert";
 import {
 	createSymmetricCryptor,
 	getSymmetricCryptoAlgorithms,
-	type SymmetricCryptoAlgorithm
+	SymmetricCryptorChain,
+	type SymmetricCryptoAlgorithm,
+	type SymmetricCryptor
 } from "./mod.ts";
 const algorithms = getSymmetricCryptoAlgorithms().filter((value) => {
 	// NOTE: Skip these algorithms due to somehow not valid with runtime Deno.
@@ -12,9 +14,9 @@ console.log(`Algorithms: ${algorithms.join(", ")}`);
 async function testerDirect(t: Deno.TestContext, key: string, context: Uint8Array): Promise<void> {
 	for (const algorithm of algorithms) {
 		await t.step(algorithm, async () => {
-			const cryptor = await createSymmetricCryptor(key, { algorithm: algorithm as SymmetricCryptoAlgorithm });
-			const encrypted = cryptor.encrypt(context);
-			deepStrictEqual(cryptor.decrypt(encrypted), context);
+			const instance = await createSymmetricCryptor(key, { algorithm: algorithm as SymmetricCryptoAlgorithm });
+			const encrypted = instance.encrypt(context);
+			deepStrictEqual(instance.decrypt(encrypted), context);
 		});
 	}
 }
@@ -41,9 +43,9 @@ Takimata sea takimata est sit kasd et est lorem nibh in est diam. Ipsum vulputat
 async function testerStream(t: Deno.TestContext, key: string, filePath: string | URL): Promise<void> {
 	for (const algorithm of algorithms) {
 		await t.step(algorithm, async () => {
-			const cryptor = await createSymmetricCryptor(key, { algorithm: algorithm as SymmetricCryptoAlgorithm });
+			const instance = await createSymmetricCryptor(key, { algorithm: algorithm as SymmetricCryptoAlgorithm });
 			await using file = await Deno.open(filePath);
-			deepStrictEqual(await new Response(file.readable.pipeThrough(cryptor.encryptStream()).pipeThrough(cryptor.decryptStream())).bytes(), await Deno.readFile(filePath));
+			deepStrictEqual(await new Response(file.readable.pipeThrough(instance.encryptStream()).pipeThrough(instance.decryptStream())).bytes(), await Deno.readFile(filePath));
 		});
 	}
 }
@@ -67,4 +69,81 @@ Deno.test("Stream 3", {
 	}
 }, async (t) => {
 	await testerStream(t, "QwErTyUiOp", "./deno.jsonc");
+});
+function testerChainDirect(chains: readonly SymmetricCryptor[], context: Uint8Array): void {
+	const instance = new SymmetricCryptorChain(chains);
+	const encrypted = instance.encrypt(context);
+	deepStrictEqual(instance.decrypt(encrypted), context);
+}
+Deno.test("Chain Direct 0", { permissions: "none" }, async () => {
+	testerChainDirect([
+		await createSymmetricCryptor("", { algorithm: "aes-256-cbc" }),
+		await createSymmetricCryptor("", { algorithm: "aes-256-ctr" }),
+		await createSymmetricCryptor("", { algorithm: "aes-256-gcm" })
+	], Uint8Array.from([]));
+});
+Deno.test("Chain Direct 1", { permissions: "none" }, async () => {
+	testerChainDirect([
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-cbc" }),
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-ctr" }),
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-gcm" })
+	], Uint8Array.from([]));
+});
+Deno.test("Chain Direct 2", { permissions: "none" }, async () => {
+	testerChainDirect([
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-cbc" }),
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-ctr" }),
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-gcm" })
+	], new TextEncoder().encode("qwertyuiop"));
+});
+Deno.test("Chain Direct 3", { permissions: "none" }, async () => {
+	testerChainDirect([
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-cbc" }),
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-ctr" }),
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-gcm" })
+	], new TextEncoder().encode(`Dolor voluptate et aliqua sit ipsum mollit excepteur dolor qui ullamco eu magna. Incididunt fugiat aute adipisicing est aliqua qui ex cupidatat dolore aliquip eu. Eu sunt id minim dolor esse culpa sunt dolor ea ullamco velit nisi ex. Commodo Lorem eiusmod laboris pariatur ullamco ullamco quis eu veniam enim nisi qui ex. Irure adipisicing culpa nulla occaecat. Ullamco Lorem laboris amet irure dolore reprehenderit velit magna tempor. Sint mollit excepteur ut amet minim veniam quis aliqua adipisicing irure quis nostrud sunt ut.
+
+Exercitation eiusmod minim et exercitation velit magna et adipisicing esse officia duis aliqua nisi magna. Nostrud aliqua labore Lorem anim pariatur cupidatat nisi nulla adipisicing. Nulla fugiat aute laborum mollit occaecat laborum. Amet ad enim reprehenderit veniam eiusmod exercitation quis sint. Reprehenderit officia ut consequat voluptate ut excepteur magna ut consectetur. Id fugiat proident nulla exercitation sit id eu cillum cillum aute ex. Ut minim officia aliquip officia est ad incididunt exercitation duis in esse deserunt nostrud deserunt.
+
+Exercitation cillum sit incididunt eiusmod dolor ullamco. Do reprehenderit commodo magna officia do exercitation aute voluptate eu laborum consequat. Officia eiusmod velit minim culpa qui nulla non eu ea laboris incididunt. Sunt magna velit ad ad ex occaecat.
+
+Ea magna do mollit eiusmod Lorem excepteur. Eiusmod aliquip adipisicing incididunt velit eiusmod non id tempor. Exercitation elit sunt amet anim.`));
+});
+async function testerChainStream(chains: readonly SymmetricCryptor[], filePath: string | URL): Promise<void> {
+	const instance = new SymmetricCryptorChain(chains);
+	await using file = await Deno.open(filePath);
+	deepStrictEqual(await new Response(file.readable.pipeThrough(instance.encryptStream()).pipeThrough(instance.decryptStream())).bytes(), await Deno.readFile(filePath));
+}
+Deno.test("Chain Stream 1", {
+	permissions: {
+		read: true
+	}
+}, async () => {
+	await testerChainStream([
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-cbc" }),
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-ctr" }),
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-gcm" })
+	], "./LICENSE.md");
+});
+Deno.test("Chain Stream 2", {
+	permissions: {
+		read: true
+	}
+}, async () => {
+	await testerChainStream([
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-cbc" }),
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-ctr" }),
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-gcm" })
+	], "./README.md");
+});
+Deno.test("Chain Stream 3", {
+	permissions: {
+		read: true
+	}
+}, async () => {
+	await testerChainStream([
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-cbc" }),
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-ctr" }),
+		await createSymmetricCryptor("QwErTyUiOp", { algorithm: "aes-256-gcm" })
+	], "./deno.jsonc");
 });

@@ -51,6 +51,14 @@ This does not request any runtime permission.
   }
   ```
 - ```ts
+  class SymmetricCryptorChain {
+    decrypt(data: Uint8Array): Uint8Array;
+    decryptStream(): TransformStream<Uint8Array, Uint8Array>;
+    encrypt(data: Uint8Array): Uint8Array;
+    encryptStream(): TransformStream<Uint8Array, Uint8Array>;
+  }
+  ```
+- ```ts
   class SymmetricCryptorDecryptStream extends TransformStream<Uint8Array, Uint8Array>;
   ```
 - ```ts

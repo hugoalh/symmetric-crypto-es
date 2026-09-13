@@ -639,3 +639,74 @@ export function createSymmetricCryptorSync(key: BinaryLike, options: SymmetricCr
 	//@ts-expect-error Private constructor.
 	return new SymmetricCryptor(s);
 }
+function mergeTransformStreams<T>(streams: readonly TransformStream<T, T>[]): TransformStream<T, T> {
+	for (let index: number = 0; index < streams.length - 1; index += 1) {
+		streams[index].readable.pipeTo(streams[index + 1].writable);
+	}
+	return {
+		writable: streams[0].writable,
+		readable: streams[streams.length - 1].readable
+	};
+}
+/**
+ * Chain of the symmetric cryptor, multiple passwords based cryptor.
+ */
+export class SymmetricCryptorChain {
+	get [Symbol.toStringTag](): string {
+		return "SymmetricCryptorChain";
+	}
+	#chains: readonly SymmetricCryptor[];
+	constructor(chains: readonly SymmetricCryptor[]) {
+		if (chains.length === 0) {
+			throw new Error(`Parameter \`chains\` is not defined!`);
+		}
+		for (let index: number = 0; index < chains.length; index += 1) {
+			if (!(chains[index] instanceof SymmetricCryptor)) {
+				throw new TypeError(`Parameter \`chains[${index}]\` is not an instance of symmetric cryptor!`);
+			}
+		}
+		this.#chains = [...chains];
+	}
+	/**
+	 * Decrypt the data.
+	 * @param {Uint8Array} data Data that need to decrypt.
+	 * @returns {Uint8Array} The decrypted data.
+	 */
+	decrypt(data: Uint8Array): Uint8Array {
+		let result: Uint8Array = data;
+		for (const chain of this.#chains.toReversed()) {
+			result = chain.decrypt(result);
+		}
+		return result;
+	}
+	/**
+	 * Create new instance of the symmetric cryptor decrypt stream to decrypt the data in the stream.
+	 * @returns {TransformStream<Uint8Array, Uint8Array>}
+	 */
+	decryptStream(): TransformStream<Uint8Array, Uint8Array> {
+		return mergeTransformStreams(this.#chains.toReversed().map((chain: SymmetricCryptor): SymmetricCryptorDecryptStream | SymmetricCryptorDecryptStreamAuthTag | SymmetricCryptorDecryptStreamCCM => {
+			return chain.decryptStream();
+		}));
+	}
+	/**
+	 * Encrypt the data.
+	 * @param {Uint8Array} data Data that need to encrypt.
+	 * @returns {Uint8Array} The encrypted data.
+	 */
+	encrypt(data: Uint8Array): Uint8Array {
+		let result: Uint8Array = data;
+		for (const chain of this.#chains) {
+			result = chain.encrypt(result);
+		}
+		return result;
+	}
+	/**
+	 * Create new instance of the symmetric cryptor encrypt stream to encrypt the data in the stream.
+	 * @returns {TransformStream<Uint8Array, Uint8Array>}
+	 */
+	encryptStream(): TransformStream<Uint8Array, Uint8Array> {
+		return mergeTransformStreams(this.#chains.map((chain: SymmetricCryptor): SymmetricCryptorEncryptStream | SymmetricCryptorEncryptStreamCCM => {
+			return chain.encryptStream();
+		}));
+	}
+}
