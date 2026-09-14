@@ -1,4 +1,4 @@
-import { exit } from "node:process";
+import process from "node:process";
 import {
 	parseArgs,
 	styleText
@@ -7,7 +7,7 @@ import { getSymmetricCryptoAlgorithms } from "./mod.ts";
 if (!import.meta.main) {
 	throw new Error(`This entrypoint is for command line only!`);
 }
-addEventListener("unhandledrejection", (event: PromiseRejectionEvent): void => {
+process.addListener("uncaughtException", (event: PromiseRejectionEvent): void => {
 	event.preventDefault();
 	let message: string;
 	if (event.reason instanceof Error) {
@@ -19,8 +19,8 @@ addEventListener("unhandledrejection", (event: PromiseRejectionEvent): void => {
 		message = String(event.reason);
 	}
 	console.error(`${styleText(["red"], "ERROR", { validateStream: false })}\t${message}`);
-	exit(1);
-}, { capture: true });
+	process.exit(1);
+});
 const { positionals } = parseArgs({
 	allowPositionals: true
 });
