@@ -52,6 +52,7 @@ This does not request any runtime permission.
   ```
 - ```ts
   class SymmetricCryptorChain {
+    constructor(cryptors: readonly SymmetricCryptor[]);
     decrypt(data: Uint8Array): Uint8Array;
     decryptStream(): TransformStream<Uint8Array, Uint8Array>;
     encrypt(data: Uint8Array): Uint8Array;

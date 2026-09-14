@@ -655,17 +655,21 @@ export class SymmetricCryptorChain {
 	get [Symbol.toStringTag](): string {
 		return "SymmetricCryptorChain";
 	}
-	#chains: readonly SymmetricCryptor[];
-	constructor(chains: readonly SymmetricCryptor[]) {
-		if (chains.length === 0) {
-			throw new Error(`Parameter \`chains\` is not defined!`);
+	#chain: readonly SymmetricCryptor[];
+	/**
+	 * Initialize.
+	 * @param {readonly SymmetricCryptor[]} cryptors Chain of the symmetric cryptors.
+	 */
+	constructor(cryptors: readonly SymmetricCryptor[]) {
+		if (cryptors.length === 0) {
+			throw new Error(`Parameter \`cryptors\` is not defined!`);
 		}
-		for (let index: number = 0; index < chains.length; index += 1) {
-			if (!(chains[index] instanceof SymmetricCryptor)) {
-				throw new TypeError(`Parameter \`chains[${index}]\` is not an instance of symmetric cryptor!`);
+		for (let index: number = 0; index < cryptors.length; index += 1) {
+			if (!(cryptors[index] instanceof SymmetricCryptor)) {
+				throw new TypeError(`Parameter \`cryptors[${index}]\` is not an instance of symmetric cryptor!`);
 			}
 		}
-		this.#chains = [...chains];
+		this.#chain = [...cryptors];
 	}
 	/**
 	 * Decrypt the data.
@@ -674,8 +678,8 @@ export class SymmetricCryptorChain {
 	 */
 	decrypt(data: Uint8Array): Uint8Array {
 		let result: Uint8Array = data;
-		for (const chain of this.#chains.toReversed()) {
-			result = chain.decrypt(result);
+		for (const cryptor of this.#chain.toReversed()) {
+			result = cryptor.decrypt(result);
 		}
 		return result;
 	}
@@ -684,8 +688,8 @@ export class SymmetricCryptorChain {
 	 * @returns {TransformStream<Uint8Array, Uint8Array>}
 	 */
 	decryptStream(): TransformStream<Uint8Array, Uint8Array> {
-		return mergeTransformStreams(this.#chains.toReversed().map((chain: SymmetricCryptor): SymmetricCryptorDecryptStream | SymmetricCryptorDecryptStreamAuthTag | SymmetricCryptorDecryptStreamCCM => {
-			return chain.decryptStream();
+		return mergeTransformStreams(this.#chain.toReversed().map((cryptor: SymmetricCryptor): SymmetricCryptorDecryptStream | SymmetricCryptorDecryptStreamAuthTag | SymmetricCryptorDecryptStreamCCM => {
+			return cryptor.decryptStream();
 		}));
 	}
 	/**
@@ -695,8 +699,8 @@ export class SymmetricCryptorChain {
 	 */
 	encrypt(data: Uint8Array): Uint8Array {
 		let result: Uint8Array = data;
-		for (const chain of this.#chains) {
-			result = chain.encrypt(result);
+		for (const cryptor of this.#chain) {
+			result = cryptor.encrypt(result);
 		}
 		return result;
 	}
@@ -705,8 +709,8 @@ export class SymmetricCryptorChain {
 	 * @returns {TransformStream<Uint8Array, Uint8Array>}
 	 */
 	encryptStream(): TransformStream<Uint8Array, Uint8Array> {
-		return mergeTransformStreams(this.#chains.map((chain: SymmetricCryptor): SymmetricCryptorEncryptStream | SymmetricCryptorEncryptStreamCCM => {
-			return chain.encryptStream();
+		return mergeTransformStreams(this.#chain.map((cryptor: SymmetricCryptor): SymmetricCryptorEncryptStream | SymmetricCryptorEncryptStreamCCM => {
+			return cryptor.encryptStream();
 		}));
 	}
 }
