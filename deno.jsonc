@@ -114,9 +114,20 @@
 		"npm-npm-publish": {
 			"command": "deno run --allow-all --no-prompt --quiet NPP --workspace \"dist/npm-npm\"",
 			"description": "Publish to NPM NPM."
+		},
+		"test-bun": {
+			"command": "cd ./_test/node && bun test",
+			"description": "Test with Bun."
+		},
+		"test-node": {
+			"command": "cd ./_test/node && node --test",
+			"description": "Test with NodeJS."
 		}
 	},
 	"test": {
+		"exclude": [
+			"_test/node/**"
+		],
 		"sanitizeOps": true,
 		"sanitizeResources": true
 	},
