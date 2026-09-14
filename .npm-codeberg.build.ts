@@ -8,6 +8,9 @@ await transform({
 		"LICENSE.md",
 		"README.md"
 	],
+	entrypointsExecutable: {
+		"symcrypto": "./cli.ts"
+	},
 	//@ts-ignore Lazy type.
 	entrypointsScript: manifest.exports,
 	generateDeclarationMap: true,
