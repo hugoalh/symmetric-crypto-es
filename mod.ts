@@ -649,7 +649,7 @@ function mergeTransformStreams<T>(streams: readonly TransformStream<T, T>[]): Tr
 	};
 }
 /**
- * Chain of the symmetric cryptor, multiple passwords based cryptor.
+ * Chain of the symmetric cryptors, multiple passwords based cryptor.
  */
 export class SymmetricCryptorChain {
 	get [Symbol.toStringTag](): string {
