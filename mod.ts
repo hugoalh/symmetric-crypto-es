@@ -487,6 +487,10 @@ export interface SymmetricCryptorOptions {
 	 */
 	algorithm?: SymmetricCryptoAlgorithm;
 	/**
+	 * Salt of the scrypt.
+	 */
+	salt?: BinaryLike;
+	/**
 	 * Options of the scrypt.
 	 */
 	scrypt?: ScryptOptions;
@@ -600,6 +604,7 @@ export class SymmetricCryptor {
 export async function createSymmetricCryptor(key: BinaryLike, options: SymmetricCryptorOptions = {}): Promise<SymmetricCryptor> {
 	const {
 		algorithm = "aes-256-cbc",
+		salt,
 		scrypt: scryptOptions
 	}: SymmetricCryptorOptions = options;
 	const {
@@ -608,7 +613,7 @@ export async function createSymmetricCryptor(key: BinaryLike, options: Symmetric
 	}: SymmetricCryptoAlgorithmInfo = getSymmetricCryptoAlgorithmInfo(algorithm);
 	//deno-lint-ignore hugoalh/symbol-description -- Private symbol.
 	const s: symbol = Symbol();
-	const keyScrypt: Uint8Array = await scrypt(key, key, keyLength, scryptOptions);
+	const keyScrypt: Uint8Array = await scrypt(key, salt ?? key, keyLength, scryptOptions);
 	binCPCEPSymmetricCryptor.set(s, {
 		algorithm,
 		key: createSecretKey(keyScrypt),
@@ -626,6 +631,7 @@ export async function createSymmetricCryptor(key: BinaryLike, options: Symmetric
 export function createSymmetricCryptorSync(key: BinaryLike, options: SymmetricCryptorOptions = {}): SymmetricCryptor {
 	const {
 		algorithm = "aes-256-cbc",
+		salt,
 		scrypt: scryptOptions
 	}: SymmetricCryptorOptions = options;
 	const {
@@ -634,7 +640,7 @@ export function createSymmetricCryptorSync(key: BinaryLike, options: SymmetricCr
 	}: SymmetricCryptoAlgorithmInfo = getSymmetricCryptoAlgorithmInfo(algorithm);
 	//deno-lint-ignore hugoalh/symbol-description -- Private symbol.
 	const s: symbol = Symbol();
-	const keyScrypt: Uint8Array = scryptSync(key, key, keyLength, scryptOptions);
+	const keyScrypt: Uint8Array = scryptSync(key, salt ?? key, keyLength, scryptOptions);
 	binCPCEPSymmetricCryptor.set(s, {
 		algorithm,
 		key: createSecretKey(keyScrypt),
