@@ -156,7 +156,10 @@ interface SymmetricCryptoAlgorithmInfo {
 }
 function getSymmetricCryptoAlgorithmInfoSafe(algorithm: string): SymmetricCryptoAlgorithmInfo | undefined {
 	const info: CipherInfo | undefined = getCipherInfo(algorithm.toLowerCase());
-	if (typeof info === "undefined") {
+	if (
+		typeof info === "undefined" ||
+		info.name.toLowerCase().includes("hmac")
+	) {
 		return;
 	}
 	const {
