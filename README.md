@@ -31,7 +31,7 @@ This does not request any runtime permission.
 | `./legacy/edition/symencdec.2` | `./legacy/symencdec/2.ts` | Migration for edition `symencdec.2`. |
 | `./legacy/edition/symencdec.3` | `./legacy/symencdec/3.ts` | Migration for edition `symencdec.3`. |
 | `./legacy/edition/webcrypto.1` | `./legacy/webcrypto/1.ts` | Migration for edition `webcrypto.1`. |
-| `./legacy/version/{SemVer}` | Multiple Redirects | Migration for (specify) version. |
+| `./legacy/version/{SemVer}` | N/A | Migration for (specify) version. |
 
 > [!NOTE]
 > - Different runtimes have vary support for the entrypoints, visit the runtime documentation for more information.
