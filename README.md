@@ -80,6 +80,7 @@ This does not request any runtime permission.
 - ```ts
   interface SymmetricCryptorOptions {
     algorithm?: SymmetricCryptoAlgorithm;
+    salt?: BinaryLike;
     scrypt?: ScryptOptions;
   }
   ```
