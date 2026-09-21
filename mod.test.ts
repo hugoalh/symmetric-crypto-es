@@ -1,4 +1,5 @@
 import { deepStrictEqual } from "node:assert";
+import { randomBytes } from "node:crypto";
 import {
 	createSymmetricCryptor,
 	getSymmetricCryptoAlgorithms,
@@ -11,7 +12,7 @@ const algorithms = getSymmetricCryptoAlgorithms().filter((value) => {
 	return (value !== "aes128");
 });
 console.log(`Algorithms: ${algorithms.join(", ")}`);
-async function testerDirect(t: Deno.TestContext, key: string, context: Uint8Array): Promise<void> {
+async function testerDirect(t: Deno.TestContext, key: string | Uint8Array, context: Uint8Array): Promise<void> {
 	for (const algorithm of algorithms) {
 		await t.step(algorithm, async () => {
 			const instance = await createSymmetricCryptor(key, { algorithm: algorithm as SymmetricCryptoAlgorithm });
@@ -39,6 +40,15 @@ Sit minim accusam elitr vulputate adipiscing vero consectetuer sea no no consequ
 Accusam dolores et eirmod erat sadipscing lorem illum erat commodo vero gubergren. Ipsum facilisis et elit nonumy amet clita nonumy duis eirmod lorem dolores aliquip in sed at. Vero eirmod duo laoreet magna duo consetetur et et takimata. Dolore dignissim erat dolore accumsan stet diam diam gubergren eirmod aliquyam accusam et accusam et nulla et stet. Illum ut quod dolor magna ut elitr elit ullamcorper duis. Erat diam sed hendrerit vero sed ut eos veniam sanctus magna. Ea lorem iriure enim ut suscipit possim labore et volutpat. Placerat qui nisl at ipsum dolor diam dolor accusam. Diam sadipscing diam gubergren vulputate dolor dolore eirmod lorem gubergren blandit duo aliquyam. Rebum consetetur invidunt takimata voluptua et no voluptua aliquyam vel. Vero ut dolores. Feugait erat et. Sanctus dolor takimata lorem et clita sea accusam labore iusto et. Esse eirmod sed facilisis kasd. Diam elitr eos diam.
 
 Takimata sea takimata est sit kasd et est lorem nibh in est diam. Ipsum vulputate erat amet invidunt justo te ipsum eos ipsum sed dolor. Amet no et diam. Amet ut et gubergren amet ut sed accusam duis et. Iriure kasd amet amet. In dolor sit hendrerit gubergren nulla et sea autem sanctus diam eos. Magna nonummy labore delenit clita lorem vero eirmod et nonumy sadipscing et ipsum elitr vel consetetur nonumy. Praesent eum at lobortis consequat dolor ut sanctus sadipscing sit. Accusam consetetur no velit aliquam et lorem assum in illum sed sea et et aliquip sea quod amet. Dolor zzril ut et sadipscing vero ut id dolore eu veniam velit kasd. Erat lorem sit consequat feugiat tation at sed dolore dolor sea autem in sadipscing dolore sed.`));
+});
+Deno.test("Direct Random", { permissions: "none" }, async (t) => {
+	for (let index = 0; index < 500; index += 1) {
+		await t.step(`${index}`, async (tt) => {
+			const key = Uint8Array.from(randomBytes(Math.ceil(Math.random() * 256)));
+			const data = Uint8Array.from(randomBytes(Math.ceil(Math.random() * 1024)));
+			await testerDirect(tt, key, data);
+		});
+	}
 });
 async function testerStream(t: Deno.TestContext, key: string, filePath: string | URL): Promise<void> {
 	for (const algorithm of algorithms) {
