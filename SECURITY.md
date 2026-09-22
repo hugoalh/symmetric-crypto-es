@@ -4,8 +4,8 @@
 
 | **Versions** | **Release Date** | **Long Term Support Date** | **End Of Life Date** |
 |:-:|:-:|:-:|:-:|
-| v5.X.X | *Unknown* | *Unknown* | *Unknown* |
-| v4.X.X | 2024-05-06 | 2024-09-01 | *Unknown* |
+| v5.X.X | 2026-09-22 | 2026-09-22 | *Unknown* |
+| v4.X.X | 2024-05-06 | 2024-09-01 | 2027-07-31 |
 
 > [!NOTE]
 > - Format of the date is according to the specification ISO 8601.
