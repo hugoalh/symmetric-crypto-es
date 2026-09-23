@@ -496,7 +496,7 @@ export interface SymmetricCryptorOptions {
 	scrypt?: ScryptOptions;
 }
 /**
- * Symmetric cryptor, a password based cryptor.
+ * Symmetric cryptor, a password based cryptor; Only able to create new instance from {@linkcode createSymmetricCryptor} or {@linkcode createSymmetricCryptorSync}.
  */
 export class SymmetricCryptor {
 	get [Symbol.toStringTag](): string {
