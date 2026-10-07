@@ -13,7 +13,6 @@ await transform({
 	},
 	//@ts-ignore Lazy type.
 	entrypointsScript: manifest.exports,
-	generateDeclarationMap: true,
 	metadata: {
 		//@ts-ignore Lazy type.
 		name: manifest.name,
